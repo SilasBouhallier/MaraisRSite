@@ -231,9 +231,9 @@ class DatabaseManager:
         - date_heure : Date fournie le capteur (Format 'YYYY-MM-DD HH:MM:SS').
         
         Correspondance des ID Emplacement (id_emplacement) :
-        - 1 : Zone Machine (Local technique / Serveurs)
-        - 2 : Zone Peinture (Entrée du marais)
-        - 3 : Zone solvant (Zone profonde)
+        - 1 : Zone Machine 
+        - 2 : Zone Peinture 
+        - 3 : Zone solvant 
         
         Correspondance des ID Alerte (id_alerte) :
         - 1 : Normal (Fonctionnement nominal)
