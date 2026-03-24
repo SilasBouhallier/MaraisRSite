@@ -1,0 +1,1 @@
+scp -r ~/Documents/marais_project_web_app/* debian@marais2026.btssn.ovh:/home/debian/marais_project/web_app/

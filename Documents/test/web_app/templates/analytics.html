@@ -1,0 +1,594 @@
+{% extends "base.html" %}
+
+{% block title %}Analytics Avancées - Système de Surveillance{% endblock %}
+
+{% block page_title %}Analytics Avancées{% endblock %}
+
+{% block content %}
+<div class="container-fluid fade-in">
+    <!-- Analytics Header -->
+    <div class="row mb-4">
+        <div class="col-12">
+            <div class="card bg-gradient text-white border-0 shadow-lg">
+                <div class="card-body">
+                    <div class="d-flex justify-content-between align-items-center">
+                        <div>
+                            <h2 class="mb-1">
+                                <i class="fas fa-chart-line me-3"></i>
+                                Centre d'Analytics
+                            </h2>
+                            <p class="mb-0 opacity-75">Analyse approfondie des données de surveillance</p>
+                        </div>
+                        <div class="text-end">
+                            <div class="d-flex gap-2 mb-2">
+                                <select class="form-select form-select-sm" id="timeRange" onchange="updateAnalytics()">
+                                    <option value="1h">Dernière heure</option>
+                                    <option value="24h" selected>24 heures</option>
+                                    <option value="7d">7 jours</option>
+                                    <option value="30d">30 jours</option>
+                                    <option value="90d">90 jours</option>
+                                </select>
+                                <select class="form-select form-select-sm" id="granularity" onchange="updateAnalytics()">
+                                    <option value="raw">Brut</option>
+                                    <option value="1m">1 minute</option>
+                                    <option value="5m">5 minutes</option>
+                                    <option value="15m">15 minutes</option>
+                                    <option value="1h">1 heure</option>
+                                </select>
+                            </div>
+                            <div class="badge bg-white bg-opacity-25 text-white">
+                                <i class="fas fa-clock me-1"></i>
+                                Dernière mise à jour: <span id="lastRefresh">Maintenant</span>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Advanced Controls -->
+    <div class="row mb-4">
+        <div class="col-12">
+            <div class="card border-0 shadow">
+                <div class="card-body">
+                    <div class="row align-items-center">
+                        <div class="col-md-3">
+                            <label class="form-label fw-bold">Type de graphique</label>
+                            <div class="btn-group w-100" role="group">
+                                <input type="radio" class="btn-check" name="chartType" id="chartLine" value="line" checked>
+                                <label class="btn btn-outline-primary" for="chartLine">
+                                    <i class="fas fa-chart-line"></i> Ligne
+                                </label>
+                                
+                                <input type="radio" class="btn-check" name="chartType" id="chartBar" value="bar">
+                                <label class="btn btn-outline-primary" for="chartBar">
+                                    <i class="fas fa-chart-bar"></i> Barres
+                                </label>
+                                
+                                <input type="radio" class="btn-check" name="chartType" id="chartArea" value="area">
+                                <label class="btn btn-outline-primary" for="chartArea">
+                                    <i class="fas fa-chart-area"></i> Aire
+                                </label>
+                            </div>
+                        </div>
+                        
+                        <div class="col-md-3">
+                            <label class="form-label fw-bold">Filtre emplacement</label>
+                            <select class="form-select" id="locationFilter" onchange="updateAnalytics()">
+                                <option value="all">Tous les emplacements</option>
+                                {% for emp in emplacements %}
+                                <option value="{{ emp.id_emplacement }}">{{ emp.nom_emplacement }}</option>
+                                {% endfor %}
+                            </select>
+                        </div>
+                        
+                        <div class="col-md-3">
+                            <label class="form-label fw-bold">Filtre alerte</label>
+                            <select class="form-select" id="alertFilter" onchange="updateAnalytics()">
+                                <option value="all">Toutes les alertes</option>
+                                <option value="normal">Normal</option>
+                                <option value="warning">Attention</option>
+                                <option value="danger">Danger</option>
+                            </select>
+                        </div>
+                        
+                        <div class="col-md-3">
+                            <label class="form-label fw-bold">Actions</label>
+                            <div class="d-flex gap-2">
+                                <button class="btn btn-primary" onclick="exportData()">
+                                    <i class="fas fa-download me-1"></i> Exporter
+                                </button>
+                                <button class="btn btn-secondary" onclick="refreshData()">
+                                    <i class="fas fa-sync me-1"></i> Actualiser
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Main Analytics Chart -->
+    <div class="row mb-4">
+        <div class="col-12">
+            <div class="card border-0 shadow">
+                <div class="card-header bg-white border-0">
+                    <div class="d-flex justify-content-between align-items-center">
+                        <h6 class="mb-0">
+                            <i class="fas fa-chart-line text-primary me-2"></i>
+                            Graphique Analytique
+                        </h6>
+                        <div class="d-flex gap-2">
+                            <button class="btn btn-sm btn-outline-secondary" onclick="zoomIn()">
+                                <i class="fas fa-search-plus"></i>
+                            </button>
+                            <button class="btn btn-sm btn-outline-secondary" onclick="zoomOut()">
+                                <i class="fas fa-search-minus"></i>
+                            </button>
+                            <button class="btn btn-sm btn-outline-secondary" onclick="resetZoom()">
+                                <i class="fas fa-expand"></i>
+                            </button>
+                        </div>
+                    </div>
+                </div>
+                <div class="card-body">
+                    <canvas id="analyticsChart" height="400"></canvas>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Secondary Charts Row -->
+    <div class="row mb-4">
+        <!-- Distribution Chart -->
+        <div class="col-xl-6 mb-4">
+            <div class="card border-0 shadow">
+                <div class="card-header bg-white border-0">
+                    <h6 class="mb-0">
+                        <i class="fas fa-chart-pie text-primary me-2"></i>
+                        Distribution par Période
+                    </h6>
+                </div>
+                <div class="card-body">
+                    <canvas id="distributionChart" height="300"></canvas>
+                </div>
+            </div>
+        </div>
+
+        <!-- Correlation Matrix -->
+        <div class="col-xl-6 mb-4">
+            <div class="card border-0 shadow">
+                <div class="card-header bg-white border-0">
+                    <h6 class="mb-0">
+                        <i class="fas fa-th text-primary me-2"></i>
+                        Matrice de Corrélation
+                    </h6>
+                </div>
+                <div class="card-body">
+                    <canvas id="correlationChart" height="300"></canvas>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Statistics Panel -->
+    <div class="row">
+        <div class="col-xl-4 mb-4">
+            <div class="card border-0 shadow">
+                <div class="card-header bg-white border-0">
+                    <h6 class="mb-0">
+                        <i class="fas fa-calculator text-primary me-2"></i>
+                        Statistiques Descriptives
+                    </h6>
+                </div>
+                <div class="card-body">
+                    <div class="row">
+                        <div class="col-6 mb-3">
+                            <small class="text-muted">Moyenne</small>
+                            <h5 class="mb-0" id="statMean">--</h5>
+                        </div>
+                        <div class="col-6 mb-3">
+                            <small class="text-muted">Médiane</small>
+                            <h5 class="mb-0" id="statMedian">--</h5>
+                        </div>
+                        <div class="col-6 mb-3">
+                            <small class="text-muted">Écart-type</small>
+                            <h5 class="mb-0" id="statStd">--</h5>
+                        </div>
+                        <div class="col-6 mb-3">
+                            <small class="text-muted">Variance</small>
+                            <h5 class="mb-0" id="statVariance">--</h5>
+                        </div>
+                        <div class="col-6 mb-3">
+                            <small class="text-muted">Min</small>
+                            <h5 class="mb-0" id="statMin">--</h5>
+                        </div>
+                        <div class="col-6 mb-3">
+                            <small class="text-muted">Max</small>
+                            <h5 class="mb-0" id="statMax">--</h5>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Anomaly Detection -->
+        <div class="col-xl-4 mb-4">
+            <div class="card border-0 shadow">
+                <div class="card-header bg-white border-0">
+                    <h6 class="mb-0">
+                        <i class="fas fa-exclamation-triangle text-primary me-2"></i>
+                        Détection d'Anomalies
+                    </h6>
+                </div>
+                <div class="card-body">
+                    <div class="list-group list-group-flush">
+                        <div class="list-group-item d-flex justify-content-between align-items-center px-0">
+                            <span>Anomalies détectées</span>
+                            <span class="badge bg-warning" id="anomalyCount">0</span>
+                        </div>
+                        <div class="list-group-item d-flex justify-content-between align-items-center px-0">
+                            <span>Seuil supérieur</span>
+                            <span class="text-muted" id="upperThreshold">--</span>
+                        </div>
+                        <div class="list-group-item d-flex justify-content-between align-items-center px-0">
+                            <span>Seuil inférieur</span>
+                            <span class="text-muted" id="lowerThreshold">--</span>
+                        </div>
+                        <div class="list-group-item d-flex justify-content-between align-items-center px-0">
+                            <span>Sensibilité</span>
+                            <input type="range" class="form-range" min="1" max="10" value="5" id="sensitivity" onchange="updateAnomalyDetection()">
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Performance Metrics -->
+        <div class="col-xl-4 mb-4">
+            <div class="card border-0 shadow">
+                <div class="card-header bg-white border-0">
+                    <h6 class="mb-0">
+                        <i class="fas fa-tachometer-alt text-primary me-2"></i>
+                        Métriques de Performance
+                    </h6>
+                </div>
+                <div class="card-body">
+                    <div class="list-group list-group-flush">
+                        <div class="list-group-item d-flex justify-content-between align-items-center px-0">
+                            <span>Points de données</span>
+                            <span class="badge bg-primary" id="dataPoints">0</span>
+                        </div>
+                        <div class="list-group-item d-flex justify-content-between align-items-center px-0">
+                            <span>Taux de rafraîchissement</span>
+                            <span class="text-muted">1 sec</span>
+                        </div>
+                        <div class="list-group-item d-flex justify-content-between align-items-center px-0">
+                            <span>Latence API</span>
+                            <span class="text-success" id="apiLatency">-- ms</span>
+                        </div>
+                        <div class="list-group-item d-flex justify-content-between align-items-center px-0">
+                            <span>Taux de succès</span>
+                            <span class="text-success">99.8%</span>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<style>
+    .btn-check:checked + .btn {
+        background-color: var(--primary-color);
+        border-color: var(--primary-color);
+        color: white;
+    }
+    
+    .form-select-sm {
+        padding: 0.375rem 0.75rem;
+        font-size: 0.875rem;
+    }
+</style>
+{% endblock %}
+
+{% block scripts %}
+<script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/chartjs-adapter-date-fns@3.0.0/dist/chartjs-adapter-date-fns.bundle.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/simple-statistics@7.8.0/dist/simple-statistics.min.js"></script>
+<script>
+let analyticsChart, distributionChart, correlationChart;
+let currentData = [];
+
+// Initialize analytics charts
+function initCharts() {
+    // Main analytics chart
+    const ctx = document.getElementById('analyticsChart').getContext('2d');
+    analyticsChart = new Chart(ctx, {
+        type: 'line',
+        data: {
+            datasets: [{
+                label: 'Valeur',
+                data: [],
+                borderColor: 'rgb(79, 70, 229)',
+                backgroundColor: 'rgba(79, 70, 229, 0.1)',
+                borderWidth: 2,
+                fill: true,
+                tension: 0.4,
+                pointRadius: 2,
+                pointHoverRadius: 4
+            }]
+        },
+        options: {
+            responsive: true,
+            maintainAspectRatio: false,
+            scales: {
+                x: {
+                    type: 'time',
+                    time: {
+                        displayFormats: {
+                            minute: 'HH:mm',
+                            hour: 'HH:mm'
+                        }
+                    }
+                },
+                y: {
+                    beginAtZero: true
+                }
+            },
+            plugins: {
+                legend: {
+                    display: false
+                },
+                zoom: {
+                    zoom: {
+                        wheel: {
+                            enabled: true,
+                        },
+                        pinch: {
+                            enabled: true
+                        },
+                        mode: 'x',
+                    },
+                    pan: {
+                        enabled: true,
+                        mode: 'x',
+                    }
+                }
+            }
+        }
+    });
+
+    // Distribution chart
+    const distCtx = document.getElementById('distributionChart').getContext('2d');
+    distributionChart = new Chart(distCtx, {
+        type: 'doughnut',
+        data: {
+            labels: ['Nuit (00-06)', 'Matin (06-12)', 'Après-midi (12-18)', 'Soir (18-24)'],
+            datasets: [{
+                data: [15, 35, 30, 20],
+                backgroundColor: [
+                    'rgba(79, 70, 229, 0.8)',
+                    'rgba(16, 185, 129, 0.8)',
+                    'rgba(245, 158, 11, 0.8)',
+                    'rgba(239, 68, 68, 0.8)'
+                ],
+                borderWidth: 2,
+                borderColor: '#fff'
+            }]
+        },
+        options: {
+            responsive: true,
+            maintainAspectRatio: false,
+            plugins: {
+                legend: {
+                    position: 'bottom'
+                }
+            }
+        }
+    });
+
+    // Correlation heatmap (simplified)
+    const corrCtx = document.getElementById('correlationChart').getContext('2d');
+    correlationChart = new Chart(corrCtx, {
+        type: 'bubble',
+        data: {
+            datasets: [{
+                label: 'Corrélation',
+                data: generateCorrelationData(),
+                backgroundColor: 'rgba(79, 70, 229, 0.6)'
+            }]
+        },
+        options: {
+            responsive: true,
+            maintainAspectRatio: false,
+            scales: {
+                x: {
+                    min: 0,
+                    max: 24,
+                    title: {
+                        display: true,
+                        text: 'Heure'
+                    }
+                },
+                y: {
+                    min: 0,
+                    max: 100,
+                    title: {
+                        display: true,
+                        text: 'Valeur'
+                    }
+                }
+            },
+            plugins: {
+                legend: {
+                    display: false
+                }
+            }
+        }
+    });
+}
+
+// Generate correlation data
+function generateCorrelationData() {
+    const data = [];
+    for (let hour = 0; hour < 24; hour++) {
+        for (let value = 0; value < 100; value += 10) {
+            const correlation = Math.random();
+            data.push({
+                x: hour,
+                y: value,
+                r: Math.abs(correlation) * 20
+            });
+        }
+    }
+    return data;
+}
+
+// Load analytics data
+async function loadAnalyticsData() {
+    const startTime = performance.now();
+    
+    try {
+        const timeRange = document.getElementById('timeRange').value;
+        const location = document.getElementById('locationFilter').value;
+        const alert = document.getElementById('alertFilter').value;
+        
+        let url = '/api/mesures?limite=1000';
+        
+        // Add filters to URL
+        if (location !== 'all') url += `&id_emplacement=${location}`;
+        
+        const response = await fetch(url);
+        const measures = await response.json();
+        
+        // Process data
+        currentData = measures.map(m => ({
+            x: new Date(m.date_heure_mesure),
+            y: m.valeur_mesure
+        }));
+        
+        // Update main chart
+        analyticsChart.data.datasets[0].data = currentData;
+        analyticsChart.update();
+        
+        // Update statistics
+        updateStatistics(measures);
+        
+        // Update performance metrics
+        const endTime = performance.now();
+        document.getElementById('apiLatency').textContent = Math.round(endTime - startTime);
+        document.getElementById('dataPoints').textContent = measures.length;
+        
+        // Update last refresh time
+        document.getElementById('lastRefresh').textContent = new Date().toLocaleTimeString();
+        
+    } catch (error) {
+        console.error('Error loading analytics data:', error);
+    }
+}
+
+// Update statistics
+function updateStatistics(measures) {
+    const values = measures.map(m => m.valeur_mesure).filter(v => v !== null);
+    
+    if (values.length === 0) return;
+    
+    // Calculate statistics
+    const mean = values.reduce((a, b) => a + b, 0) / values.length;
+    const sortedValues = [...values].sort((a, b) => a - b);
+    const median = sortedValues[Math.floor(sortedValues.length / 2)];
+    
+    // Calculate standard deviation
+    const variance = values.reduce((sum, val) => sum + Math.pow(val - mean, 2), 0) / values.length;
+    const std = Math.sqrt(variance);
+    
+    // Update display
+    document.getElementById('statMean').textContent = mean.toFixed(2);
+    document.getElementById('statMedian').textContent = median.toFixed(2);
+    document.getElementById('statStd').textContent = std.toFixed(2);
+    document.getElementById('statVariance').textContent = variance.toFixed(2);
+    document.getElementById('statMin').textContent = Math.min(...values).toFixed(2);
+    document.getElementById('statMax').textContent = Math.max(...values).toFixed(2);
+    
+    // Update anomaly detection
+    updateAnomalyDetection(values);
+}
+
+// Update anomaly detection
+function updateAnomalyDetection(values) {
+    if (values.length === 0) return;
+    
+    const mean = values.reduce((a, b) => a + b, 0) / values.length;
+    const std = Math.sqrt(values.reduce((sum, val) => sum + Math.pow(val - mean, 2), 0) / values.length);
+    const sensitivity = document.getElementById('sensitivity').value;
+    
+    const upperThreshold = mean + (sensitivity * std);
+    const lowerThreshold = mean - (sensitivity * std);
+    
+    const anomalies = values.filter(v => v > upperThreshold || v < lowerThreshold);
+    
+    document.getElementById('anomalyCount').textContent = anomalies.length;
+    document.getElementById('upperThreshold').textContent = upperThreshold.toFixed(2);
+    document.getElementById('lowerThreshold').textContent = lowerThreshold.toFixed(2);
+}
+
+// Chart controls
+function zoomIn() {
+    analyticsChart.zoom(1.1);
+}
+
+function zoomOut() {
+    analyticsChart.zoom(0.9);
+}
+
+function resetZoom() {
+    analyticsChart.resetZoom();
+}
+
+// Update analytics
+function updateAnalytics() {
+    loadAnalyticsData();
+}
+
+// Export data
+function exportData() {
+    const csvContent = "data:text/csv;charset=utf-8," 
+        + "Date,Valeur,Emplacement,Alerte\n"
+        + currentData.map(d => `${d.x.toISOString()},${d.y}`).join("\n");
+    
+    const encodedUri = encodeURI(csvContent);
+    const link = document.createElement("a");
+    link.setAttribute("href", encodedUri);
+    link.setAttribute("download", `analytics_${new Date().toISOString()}.csv`);
+    document.body.appendChild(link);
+    link.click();
+    document.body.removeChild(link);
+}
+
+// Refresh data
+function refreshData() {
+    loadAnalyticsData();
+}
+
+// Change chart type
+document.querySelectorAll('input[name="chartType"]').forEach(radio => {
+    radio.addEventListener('change', function() {
+        const chartType = this.value;
+        analyticsChart.config.type = chartType;
+        analyticsChart.update();
+    });
+});
+
+// Initialize on load
+document.addEventListener('DOMContentLoaded', function() {
+    initCharts();
+    loadAnalyticsData();
+    
+    // Auto-refresh every 30 seconds
+    setInterval(loadAnalyticsData, 30000);
+});
+</script>
+{% endblock %}

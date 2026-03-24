@@ -1,0 +1,36 @@
+comande test infra
+
+🔍 Tests individuels
+Tester uniquement la base de données
+bash
+docker compose run --rm test_runner sh /tests/test_database.sh
+Tester uniquement le broker MQTT
+bash
+docker compose run --rm test_runner sh /tests/test_mqtt.sh
+Tester uniquement le réseau
+bash
+docker compose run --rm test_runner sh /tests/test_network.sh
+Tester uniquement les services web
+bash
+docker compose run --rm test_runner sh /tests/test_ports.sh
+
+
+Lancer les tests sans arrêter les conteneurs
+bash
+docker compose run --rm test_runner
+	
+
+# Tests de base rapides
+sh tests/basic_connectivity_tests.sh
+
+# Tests complets de conteneurs
+sh tests/container_connectivity_tests.sh
+
+# Validation complète (recommandé pour CI/CD, ou intégration continue/livraison continue ou déploiement, est une pratique de développement logiciel rendue possible par l'automatisation)
+sh tests/full_infrastructure_validation.sh
+
+
+	
+	
+docker compose run test_runner
+docker compose logs test_runner

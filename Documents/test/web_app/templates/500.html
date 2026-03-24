@@ -1,0 +1,54 @@
+{% extends "base.html" %}
+
+{% block title %}Erreur serveur - Système de Surveillance{% endblock %}
+
+{% block content %}
+<div class="container-fluid">
+    <div class="row">
+        <nav class="col-md-3 col-lg-2 d-md-block sidebar collapse">
+            <div class="position-sticky pt-3">
+                <ul class="nav flex-column">
+                    <li class="nav-item">
+                        <a class="nav-link" href="{{ url_for('index') }}">
+                            <i class="fas fa-home"></i> Accueil
+                        </a>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link" href="{{ url_for('mesures') }}">
+                            <i class="fas fa-chart-line"></i> Mesures
+                        </a>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link" href="{{ url_for('admin') }}">
+                            <i class="fas fa-cogs"></i> Administration
+                        </a>
+                    </li>
+                </ul>
+            </div>
+        </nav>
+
+        <main class="col-md-9 ms-sm-auto col-lg-10 px-md-4 main-content">
+            <div class="d-flex justify-content-center align-items-center" style="min-height: 70vh;">
+                <div class="text-center">
+                    <div class="mb-4">
+                        <i class="fas fa-exclamation-circle" style="font-size: 4rem; color: #e74c3c;"></i>
+                    </div>
+                    <h1 class="display-4">500</h1>
+                    <h2 class="mb-3">Erreur serveur</h2>
+                    <p class="lead text-muted mb-4">
+                        Une erreur interne est survenue. Veuillez réessayer plus tard ou contacter l'administrateur.
+                    </p>
+                    <div class="mb-4">
+                        <a href="{{ url_for('index') }}" class="btn btn-primary me-2">
+                            <i class="fas fa-home"></i> Retour à l'accueil
+                        </a>
+                        <button onclick="history.back()" class="btn btn-secondary">
+                            <i class="fas fa-arrow-left"></i> Page précédente
+                        </button>
+                    </div>
+                </div>
+            </div>
+        </main>
+    </div>
+</div>
+{% endblock %}

@@ -1,0 +1,49 @@
+{% extends "base.html" %}
+
+{% block title %}Page non trouvée - Système de Surveillance{% endblock %}
+
+{% block content %}
+<div class="container-fluid">
+    <div class="row">
+        <nav class="col-md-3 col-lg-2 d-md-block sidebar collapse">
+            <div class="position-sticky pt-3">
+                <ul class="nav flex-column">
+                    <li class="nav-item">
+                        <a class="nav-link" href="{{ url_for('index') }}">
+                            <i class="fas fa-home"></i> Accueil
+                        </a>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link" href="{{ url_for('mesures') }}">
+                            <i class="fas fa-chart-line"></i> Mesures
+                        </a>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link" href="{{ url_for('admin') }}">
+                            <i class="fas fa-cogs"></i> Administration
+                        </a>
+                    </li>
+                </ul>
+            </div>
+        </nav>
+
+        <main class="col-md-9 ms-sm-auto col-lg-10 px-md-4 main-content">
+            <div class="d-flex justify-content-center align-items-center" style="min-height: 70vh;">
+                <div class="text-center">
+                    <div class="mb-4">
+                        <i class="fas fa-exclamation-triangle" style="font-size: 4rem; color: #f39c12;"></i>
+                    </div>
+                    <h1 class="display-4">404</h1>
+                    <h2 class="mb-3">Page non trouvée</h2>
+                    <p class="lead text-muted mb-4">
+                        La page que vous recherchez n'existe pas ou a été déplacée.
+                    </p>
+                    <a href="{{ url_for('index') }}" class="btn btn-primary">
+                        <i class="fas fa-home"></i> Retour à l'accueil
+                    </a>
+                </div>
+            </div>
+        </main>
+    </div>
+</div>
+{% endblock %}

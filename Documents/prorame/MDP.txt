@@ -1,0 +1,25 @@
+MDP
+
+
+BDD
+
+USER : Marais_R_Site_User
+mots de passe USER : Marais_R_Site_User/123
+
+USER : mqtt_user
+mots de passe USER : mqtt_password_hyrome49#
+
+USER : web_user
+mots de passe USER : web_password_hyrome49#
+
+USER : root
+mots de passe USER : rootpassword
+
+
+SSH
+
+USER : debian
+
+mots de passe USER : hyrome49#
+
+

@@ -1,0 +1,23 @@
+services:
+
+  mariadb:
+    image: mariadb:10.11
+    restart: unless-stopped
+    command: ["mariadbd", "--event-scheduler=ON"]
+    environment:
+      MARIADB_ROOT_PASSWORD: ${MYSQL_ROOT_PASSWORD}
+      MARIADB_DATABASE: ${MYSQL_DATABASE}
+      MARIADB_USER: ${MYSQL_USER}
+      MARIADB_PASSWORD: ${MYSQL_PASSWORD}
+    volumes:
+      - vol_BDD:/var/lib/mysql
+    networks:
+      - marais_net
+
+volumes:
+  vol_BDD:
+
+
+networks:
+  marais_net:
+    driver: bridge

@@ -1,0 +1,495 @@
+{% extends "base.html" %}
+
+{% block title %}Comparaison de Périodes - Système de Surveillance{% endblock %}
+
+{% block page_title %}Comparaison de Périodes{% endblock %}
+
+{% block content %}
+<div class="container-fluid fade-in">
+    <!-- Comparison Header -->
+    <div class="row mb-4">
+        <div class="col-12">
+            <div class="card bg-gradient text-white border-0 shadow-lg">
+                <div class="card-body">
+                    <div class="d-flex justify-content-between align-items-center">
+                        <div>
+                            <h2 class="mb-1">
+                                <i class="fas fa-balance-scale me-3"></i>
+                                Comparaison de Périodes
+                            </h2>
+                            <p class="mb-0 opacity-75">Analyse comparative des données sur différentes périodes</p>
+                        </div>
+                        <div class="text-end">
+                            <div class="btn-group">
+                                <button class="btn btn-light" onclick="setComparisonMode('period')">
+                                    <i class="fas fa-calendar"></i> Par Période
+                                </button>
+                                <button class="btn btn-light" onclick="setComparisonMode('location')">
+                                    <i class="fas fa-map-marker-alt"></i> Par Lieu
+                                </button>
+                                <button class="btn btn-light" onclick="setComparisonMode('metric')">
+                                    <i class="fas fa-chart-line"></i> Par Métrique
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Period Selection -->
+    <div class="row mb-4">
+        <div class="col-12">
+            <div class="card border-0 shadow">
+                <div class="card-header bg-white border-0">
+                    <h6 class="mb-0">
+                        <i class="fas fa-calendar-alt text-primary me-2"></i>
+                        Sélection des Périodes
+                    </h6>
+                </div>
+                <div class="card-body">
+                    <div class="row">
+                        <!-- Period 1 -->
+                        <div class="col-md-6 mb-3">
+                            <div class="border rounded p-3">
+                                <h6 class="text-primary mb-3">Période 1</h6>
+                                <div class="row">
+                                    <div class="col-md-6 mb-2">
+                                        <label class="form-label">Date de début</label>
+                                        <input type="datetime-local" class="form-control" id="period1Start">
+                                    </div>
+                                    <div class="col-md-6 mb-2">
+                                        <label class="form-label">Date de fin</label>
+                                        <input type="datetime-local" class="form-control" id="period1End">
+                                    </div>
+                                    <div class="col-md-12">
+                                        <label class="form-label">Label</label>
+                                        <input type="text" class="form-control" id="period1Label" placeholder="Ex: Cette semaine">
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                        
+                        <!-- Period 2 -->
+                        <div class="col-md-6 mb-3">
+                            <div class="border rounded p-3">
+                                <h6 class="text-success mb-3">Période 2</h6>
+                                <div class="row">
+                                    <div class="col-md-6 mb-2">
+                                        <label class="form-label">Date de début</label>
+                                        <input type="datetime-local" class="form-control" id="period2Start">
+                                    </div>
+                                    <div class="col-md-6 mb-2">
+                                        <label class="form-label">Date de fin</label>
+                                        <input type="datetime-local" class="form-control" id="period2End">
+                                    </div>
+                                    <div class="col-md-12">
+                                        <label class="form-label">Label</label>
+                                        <input type="text" class="form-control" id="period2Label" placeholder="Ex: Semaine dernière">
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <div class="text-center mt-3">
+                        <button class="btn btn-primary btn-lg" onclick="performComparison()">
+                            <i class="fas fa-chart-bar me-2"></i>
+                            Lancer la Comparaison
+                        </button>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Comparison Results -->
+    <div class="row mb-4" id="comparisonResults" style="display: none;">
+        <!-- Comparison Chart -->
+        <div class="col-xl-8 mb-4">
+            <div class="card border-0 shadow">
+                <div class="card-header bg-white border-0">
+                    <h6 class="mb-0">
+                        <i class="fas fa-chart-line text-primary me-2"></i>
+                        Graphique Comparatif
+                    </h6>
+                </div>
+                <div class="card-body">
+                    <canvas id="comparisonChart" height="400"></canvas>
+                </div>
+            </div>
+        </div>
+
+        <!-- Statistics Comparison -->
+        <div class="col-xl-4 mb-4">
+            <div class="card border-0 shadow">
+                <div class="card-header bg-white border-0">
+                    <h6 class="mb-0">
+                        <i class="fas fa-calculator text-primary me-2"></i>
+                        Statistiques Comparatives
+                    </h6>
+                </div>
+                <div class="card-body">
+                    <div class="mb-4">
+                        <h6 class="text-primary" id="period1Title">Période 1</h6>
+                        <div class="list-group list-group-flush">
+                            <div class="list-group-item d-flex justify-content-between px-0">
+                                <span>Moyenne</span>
+                                <strong id="period1Mean">--</strong>
+                            </div>
+                            <div class="list-group-item d-flex justify-content-between px-0">
+                                <span>Maximum</span>
+                                <strong id="period1Max">--</strong>
+                            </div>
+                            <div class="list-group-item d-flex justify-content-between px-0">
+                                <span>Minimum</span>
+                                <strong id="period1Min">--</strong>
+                            </div>
+                            <div class="list-group-item d-flex justify-content-between px-0">
+                                <span>Écart-type</span>
+                                <strong id="period1Std">--</strong>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <div class="mb-4">
+                        <h6 class="text-success" id="period2Title">Période 2</h6>
+                        <div class="list-group list-group-flush">
+                            <div class="list-group-item d-flex justify-content-between px-0">
+                                <span>Moyenne</span>
+                                <strong id="period2Mean">--</strong>
+                            </div>
+                            <div class="list-group-item d-flex justify-content-between px-0">
+                                <span>Maximum</span>
+                                <strong id="period2Max">--</strong>
+                            </div>
+                            <div class="list-group-item d-flex justify-content-between px-0">
+                                <span>Minimum</span>
+                                <strong id="period2Min">--</strong>
+                            </div>
+                            <div class="list-group-item d-flex justify-content-between px-0">
+                                <span>Écart-type</span>
+                                <strong id="period2Std">--</strong>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <div class="alert alert-info">
+                        <h6 class="alert-heading">Différence</h6>
+                        <div class="d-flex justify-content-between">
+                            <span>Écart moyen:</span>
+                            <strong id="meanDiff">--</strong>
+                        </div>
+                        <div class="d-flex justify-content-between">
+                            <span>Écart max:</span>
+                            <strong id="maxDiff">--</strong>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Detailed Breakdown -->
+    <div class="row" id="detailedBreakdown" style="display: none;">
+        <div class="col-12">
+            <div class="card border-0 shadow">
+                <div class="card-header bg-white border-0">
+                    <h6 class="mb-0">
+                        <i class="fas fa-table text-primary me-2"></i>
+                        Analyse Détaillée
+                    </h6>
+                </div>
+                <div class="card-body">
+                    <div class="table-responsive">
+                        <table class="table table-hover">
+                            <thead class="table-light">
+                                <tr>
+                                    <th>Métrique</th>
+                                    <th id="period1Header">Période 1</th>
+                                    <th id="period2Header">Période 2</th>
+                                    <th>Différence</th>
+                                    <th>Variation (%)</th>
+                                    <th>Tendance</th>
+                                </tr>
+                            </thead>
+                            <tbody id="comparisonTable">
+                                <!-- Table rows will be added here -->
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<style>
+    .border-period {
+        border: 2px solid var(--primary-color);
+        background: rgba(79, 70, 229, 0.05);
+    }
+    
+    .border-period-success {
+        border: 2px solid var(--success-color);
+        background: rgba(16, 185, 129, 0.05);
+    }
+</style>
+{% endblock %}
+
+{% block scripts %}
+<script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/chartjs-adapter-date-fns@3.0.0/dist/chartjs-adapter-date-fns.bundle.min.js"></script>
+<script>
+let comparisonChart;
+let period1Data = [];
+let period2Data = [];
+
+// Initialize comparison chart
+function initComparisonChart() {
+    const ctx = document.getElementById('comparisonChart').getContext('2d');
+    comparisonChart = new Chart(ctx, {
+        type: 'line',
+        data: {
+            datasets: [
+                {
+                    label: 'Période 1',
+                    data: [],
+                    borderColor: 'rgb(79, 70, 229)',
+                    backgroundColor: 'rgba(79, 70, 229, 0.1)',
+                    borderWidth: 3,
+                    fill: false,
+                    tension: 0.4
+                },
+                {
+                    label: 'Période 2',
+                    data: [],
+                    borderColor: 'rgb(16, 185, 129)',
+                    backgroundColor: 'rgba(16, 185, 129, 0.1)',
+                    borderWidth: 3,
+                    fill: false,
+                    tension: 0.4
+                }
+            ]
+        },
+        options: {
+            responsive: true,
+            maintainAspectRatio: false,
+            scales: {
+                x: {
+                    type: 'time',
+                    time: {
+                        displayFormats: {
+                            hour: 'HH:mm',
+                            day: 'DD/MM'
+                        }
+                    }
+                },
+                y: {
+                    beginAtZero: true
+                }
+            },
+            plugins: {
+                legend: {
+                    display: true,
+                    position: 'top'
+                }
+            }
+        }
+    });
+}
+
+// Set default dates
+function setDefaultDates() {
+    const now = new Date();
+    const yesterday = new Date(now.getTime() - 24 * 60 * 60 * 1000);
+    const lastWeek = new Date(now.getTime() - 7 * 24 * 60 * 60 * 1000);
+    const twoWeeksAgo = new Date(now.getTime() - 14 * 24 * 60 * 60 * 1000);
+    
+    // Period 1: Last 24 hours
+    document.getElementById('period1Start').value = formatDateTimeLocal(yesterday);
+    document.getElementById('period1End').value = formatDateTimeLocal(now);
+    document.getElementById('period1Label').value = 'Dernières 24h';
+    
+    // Period 2: Previous 24 hours
+    document.getElementById('period2Start').value = formatDateTimeLocal(twoWeeksAgo);
+    document.getElementById('period2End').value = formatDateTimeLocal(lastWeek);
+    document.getElementById('period2Label').value = '24h précédentes';
+}
+
+// Format datetime for input
+function formatDateTimeLocal(date) {
+    const year = date.getFullYear();
+    const month = String(date.getMonth() + 1).padStart(2, '0');
+    const day = String(date.getDate()).padStart(2, '0');
+    const hours = String(date.getHours()).padStart(2, '0');
+    const minutes = String(date.getMinutes()).padStart(2, '0');
+    
+    return `${year}-${month}-${day}T${hours}:${minutes}`;
+}
+
+// Perform comparison
+async function performComparison() {
+    const period1Start = document.getElementById('period1Start').value;
+    const period1End = document.getElementById('period1End').value;
+    const period2Start = document.getElementById('period2Start').value;
+    const period2End = document.getElementById('period2End').value;
+    
+    if (!period1Start || !period1End || !period2Start || !period2End) {
+        alert('Veuillez remplir toutes les dates pour les deux périodes');
+        return;
+    }
+    
+    try {
+        // Load all data
+        const response = await fetch('/api/mesures?limite=5000');
+        const allMeasures = await response.json();
+        
+        // Filter data for each period
+        period1Data = allMeasures.filter(m => {
+            const date = new Date(m.date_heure_mesure);
+            return date >= new Date(period1Start) && date <= new Date(period1End);
+        });
+        
+        period2Data = allMeasures.filter(m => {
+            const date = new Date(m.date_heure_mesure);
+            return date >= new Date(period2Start) && date <= new Date(period2End);
+        });
+        
+        // Update chart
+        updateComparisonChart();
+        
+        // Update statistics
+        updateComparisonStats();
+        
+        // Show results
+        document.getElementById('comparisonResults').style.display = 'block';
+        document.getElementById('detailedBreakdown').style.display = 'block';
+        
+        // Update titles
+        document.getElementById('period1Title').textContent = document.getElementById('period1Label').value || 'Période 1';
+        document.getElementById('period2Title').textContent = document.getElementById('period2Label').value || 'Période 2';
+        document.getElementById('period1Header').textContent = document.getElementById('period1Label').value || 'Période 1';
+        document.getElementById('period2Header').textContent = document.getElementById('period2Label').value || 'Période 2';
+        
+    } catch (error) {
+        console.error('Error performing comparison:', error);
+        alert('Erreur lors de la comparaison: ' + error.message);
+    }
+}
+
+// Update comparison chart
+function updateComparisonChart() {
+    const period1ChartData = period1Data.map(m => ({
+        x: new Date(m.date_heure_mesure),
+        y: m.valeur_mesure
+    }));
+    
+    const period2ChartData = period2Data.map(m => ({
+        x: new Date(m.date_heure_mesure),
+        y: m.valeur_mesure
+    }));
+    
+    comparisonChart.data.datasets[0].data = period1ChartData;
+    comparisonChart.data.datasets[1].data = period2ChartData;
+    comparisonChart.update();
+}
+
+// Update comparison statistics
+function updateComparisonStats() {
+    const period1Values = period1Data.map(m => m.valeur_mesure);
+    const period2Values = period2Data.map(m => m.valeur_mesure);
+    
+    // Calculate statistics for period 1
+    const period1Stats = calculateStats(period1Values);
+    document.getElementById('period1Mean').textContent = period1Stats.mean.toFixed(2);
+    document.getElementById('period1Max').textContent = period1Stats.max.toFixed(2);
+    document.getElementById('period1Min').textContent = period1Stats.min.toFixed(2);
+    document.getElementById('period1Std').textContent = period1Stats.std.toFixed(2);
+    
+    // Calculate statistics for period 2
+    const period2Stats = calculateStats(period2Values);
+    document.getElementById('period2Mean').textContent = period2Stats.mean.toFixed(2);
+    document.getElementById('period2Max').textContent = period2Stats.max.toFixed(2);
+    document.getElementById('period2Min').textContent = period2Stats.min.toFixed(2);
+    document.getElementById('period2Std').textContent = period2Stats.std.toFixed(2);
+    
+    // Calculate differences
+    const meanDiff = period1Stats.mean - period2Stats.mean;
+    const maxDiff = period1Stats.max - period2Stats.max;
+    const meanPctDiff = ((meanDiff / period2Stats.mean) * 100).toFixed(1);
+    
+    document.getElementById('meanDiff').textContent = (meanDiff >= 0 ? '+' : '') + meanDiff.toFixed(2);
+    document.getElementById('maxDiff').textContent = (maxDiff >= 0 ? '+' : '') + maxDiff.toFixed(2);
+    
+    // Update detailed table
+    updateComparisonTable(period1Stats, period2Stats, meanPctDiff);
+}
+
+// Calculate statistics
+function calculateStats(values) {
+    if (values.length === 0) return { mean: 0, max: 0, min: 0, std: 0 };
+    
+    const mean = values.reduce((a, b) => a + b, 0) / values.length;
+    const max = Math.max(...values);
+    const min = Math.min(...values);
+    
+    const variance = values.reduce((sum, val) => sum + Math.pow(val - mean, 2), 0) / values.length;
+    const std = Math.sqrt(variance);
+    
+    return { mean, max, min, std };
+}
+
+// Update comparison table
+function updateComparisonTable(period1Stats, period2Stats, meanPctDiff) {
+    const metrics = [
+        { name: 'Moyenne', p1: period1Stats.mean, p2: period2Stats.mean },
+        { name: 'Maximum', p1: period1Stats.max, p2: period2Stats.max },
+        { name: 'Minimum', p1: period1Stats.min, p2: period2Stats.min },
+        { name: 'Écart-type', p1: period1Stats.std, p2: period2Stats.std },
+        { name: 'Nombre de mesures', p1: period1Data.length, p2: period2Data.length }
+    ];
+    
+    const tableBody = document.getElementById('comparisonTable');
+    tableBody.innerHTML = '';
+    
+    metrics.forEach(metric => {
+        const diff = metric.p1 - metric.p2;
+        const pctDiff = metric.p2 !== 0 ? ((diff / metric.p2) * 100).toFixed(1) : 0;
+        const trend = diff > 0 ? 'up' : diff < 0 ? 'down' : 'stable';
+        const trendIcon = trend === 'up' ? 'arrow-up text-success' : trend === 'down' ? 'arrow-down text-danger' : 'minus text-secondary';
+        
+        const row = `
+            <tr>
+                <td><strong>${metric.name}</strong></td>
+                <td>${metric.p1.toFixed(2)}</td>
+                <td>${metric.p2.toFixed(2)}</td>
+                <td class="${diff > 0 ? 'text-success' : diff < 0 ? 'text-danger' : ''}">
+                    ${diff >= 0 ? '+' : ''}${diff.toFixed(2)}
+                </td>
+                <td class="${pctDiff > 0 ? 'text-success' : pctDiff < 0 ? 'text-danger' : ''}">
+                    ${pctDiff > 0 ? '+' : ''}${pctDiff}%
+                </td>
+                <td><i class="fas fa-${trendIcon}"></i></td>
+            </tr>
+        `;
+        
+        tableBody.innerHTML += row;
+    });
+}
+
+// Set comparison mode
+function setComparisonMode(mode) {
+    // This would change the UI based on the selected mode
+    console.log('Comparison mode:', mode);
+    // Implementation would depend on specific requirements
+}
+
+// Initialize on load
+document.addEventListener('DOMContentLoaded', function() {
+    initComparisonChart();
+    setDefaultDates();
+});
+</script>
+{% endblock %}

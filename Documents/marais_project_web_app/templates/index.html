@@ -1,0 +1,242 @@
+{% extends "base.html" %}
+
+{% block title %}Accueil - Système de Surveillance{% endblock %}
+
+{% block page_title %}Tableau de bord{% endblock %}
+
+{% block content %}
+<div class="row fade-in">
+    <!-- Cartes statistiques -->
+    <div class="col-xl-3 col-md-6 mb-4">
+        <div class="card card-stats pulse">
+            <div class="card-body">
+                <div class="row">
+                    <div class="col">
+                        <h5 class="card-title text-uppercase text-muted mb-0">Total mesures</h5>
+                        <span class="h2 font-weight-bold mb-0">{{ stats.total_mesures if stats else 0 }}</span>
+                        <div class="mt-2">
+                            <span class="badge bg-white bg-opacity-25 text-white">
+                                <i class="fas fa-arrow-up"></i> +12% ce mois
+                            </span>
+                        </div>
+                    </div>
+                    <div class="col-auto">
+                        <div class="icon icon-shape bg-white bg-opacity-20 text-white rounded-circle shadow">
+                            <i class="fas fa-chart-line"></i>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="col-xl-3 col-md-6 mb-4">
+        <div class="card card-stats">
+            <div class="card-body">
+                <div class="row">
+                    <div class="col">
+                        <h5 class="card-title text-uppercase text-muted mb-0">Moyenne</h5>
+                        <span class="h2 font-weight-bold mb-0">
+                            {{ "%.2f"|format(stats.moyenne_valeur) if stats and stats.moyenne_valeur else "N/A" }}
+                        </span>
+                        <div class="mt-2">
+                            <span class="badge bg-white bg-opacity-25 text-white">
+                                <i class="fas fa-minus"></i> Stable
+                            </span>
+                        </div>
+                    </div>
+                    <div class="col-auto">
+                        <div class="icon icon-shape bg-white bg-opacity-20 text-white rounded-circle shadow">
+                            <i class="fas fa-calculator"></i>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="col-xl-3 col-md-6 mb-4">
+        <div class="card card-stats">
+            <div class="card-body">
+                <div class="row">
+                    <div class="col">
+                        <h5 class="card-title text-uppercase text-muted mb-0">Emplacements</h5>
+                        <span class="h2 font-weight-bold mb-0">{{ stats.nb_emplacements if stats else 0 }}</span>
+                        <div class="mt-2">
+                            <span class="badge bg-white bg-opacity-25 text-white">
+                                <i class="fas fa-plus"></i> 2 nouveaux
+                            </span>
+                        </div>
+                    </div>
+                    <div class="col-auto">
+                        <div class="icon icon-shape bg-white bg-opacity-20 text-white rounded-circle shadow">
+                            <i class="fas fa-map-marker-alt"></i>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="col-xl-3 col-md-6 mb-4">
+        <div class="card card-stats">
+            <div class="card-body">
+                <div class="row">
+                    <div class="col">
+                        <h5 class="card-title text-uppercase text-muted mb-0">Alertes actives</h5>
+                        <span class="h2 font-weight-bold mb-0">{{ stats.nb_types_alerte if stats else 0 }}</span>
+                        <div class="mt-2">
+                            <span class="badge bg-white bg-opacity-25 text-white">
+                                <i class="fas fa-exclamation-triangle"></i> Surveillance
+                            </span>
+                        </div>
+                    </div>
+                    <div class="col-auto">
+                        <div class="icon icon-shape bg-white bg-opacity-20 text-white rounded-circle shadow">
+                            <i class="fas fa-bell"></i>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<div class="row fade-in">
+    <!-- Mesures récentes -->
+    <div class="col-lg-8">
+        <div class="card shadow">
+            <div class="card-header py-3">
+                <h6 class="m-0 font-weight-bold text-primary">
+                    <i class="fas fa-clock"></i> Mesures récentes (24h)
+                </h6>
+            </div>
+            <div class="card-body">
+                {% if recentes %}
+                    <div class="table-responsive">
+                        <table class="table table-sm">
+                            <thead>
+                                <tr>
+                                    <th>Date/Heure</th>
+                                    <th>Valeur</th>
+                                    <th>Emplacement</th>
+                                    <th>Alerte</th>
+                                    <th>Actions</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                {% for mesure in recentes[:10] %}
+                                <tr>
+                                    <td>{{ mesure.date_heure_mesure.strftime('%d/%m %H:%M') if mesure.date_heure_mesure else 'N/A' }}</td>
+                                    <td>
+                                        <span class="badge rounded-pill bg-{{ 'danger' if mesure.nom_alerte == 'Danger' else 'warning' if mesure.nom_alerte == 'Attention' else 'success' }} bg-opacity-75">
+                                            {{ "%.2f"|format(mesure.valeur_mesure) if mesure.valeur_mesure else 'N/A' }}
+                                        </span>
+                                    </td>
+                                    <td>{{ mesure.nom_emplacement or 'N/A' }}</td>
+                                    <td>
+                                        {% if mesure.nom_alerte %}
+                                        <span class="badge bg-{{ 'danger' if mesure.nom_alerte == 'Danger' else 'warning' if mesure.nom_alerte == 'Attention' else 'success' }}">
+                                            {{ mesure.nom_alerte }}
+                                        </span>
+                                        {% else %}
+                                        <span class="badge bg-secondary">Aucune</span>
+                                        {% endif %}
+                                    </td>
+                                    <td>
+                                        <a href="{{ url_for('detail_mesure', id_mesure=mesure.id_mesure) }}" class="btn btn-sm btn-outline-primary">
+                                            <i class="fas fa-eye"></i>
+                                        </a>
+                                    </td>
+                                </tr>
+                                {% endfor %}
+                            </tbody>
+                        </table>
+                    </div>
+                    <div class="text-center mt-3">
+                        <a href="{{ url_for('mesures') }}" class="btn btn-primary">Voir toutes les mesures</a>
+                    </div>
+                {% else %}
+                    <p class="text-muted">Aucune mesure récente</p>
+                {% endif %}
+            </div>
+        </div>
+    </div>
+
+    <!-- Emplacements -->
+    <div class="col-lg-4">
+        <div class="card shadow">
+            <div class="card-header py-3">
+                <h6 class="m-0 font-weight-bold text-primary">
+                    <i class="fas fa-map"></i> Emplacements
+                </h6>
+            </div>
+            <div class="card-body">
+                {% if emplacements %}
+                    {% for emplacement in emplacements %}
+                    <div class="d-flex justify-content-between align-items-center mb-3 p-3 rounded bg-light bg-opacity-50 hover-bg">
+                        <div class="d-flex align-items-center">
+                            <div class="rounded-circle bg-gradient p-2 me-3">
+                                <i class="fas fa-map-marker-alt text-white"></i>
+                            </div>
+                            <div>
+                                <strong class="text-dark">{{ emplacement.nom_emplacement or 'N/A' }}</strong>
+                                <br>
+                                <small class="text-muted">{{ emplacement.nom_type_emplacement or 'N/A' }}</small>
+                            </div>
+                        </div>
+                        <a href="{{ url_for('detail_emplacement', id_emplacement=emplacement.id_emplacement) }}" 
+                           class="btn btn-sm btn-primary rounded-pill">
+                            <i class="fas fa-arrow-right"></i>
+                        </a>
+                    </div>
+                    {% if not loop.last %}<div class="border-bottom border-light opacity-25 my-2"></div>{% endif %}
+                    {% endfor %}
+                {% else %}
+                    <div class="text-center py-4">
+                        <i class="fas fa-map-marked-alt fa-3x text-muted mb-3"></i>
+                        <p class="text-muted">Aucun emplacement disponible</p>
+                    </div>
+                {% endif %}
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Actions rapides -->
+<div class="row mt-4 fade-in">
+    <div class="col-12">
+        <div class="card shadow">
+            <div class="card-header py-3">
+                <h6 class="m-0 font-weight-bold text-primary">
+                    <i class="fas fa-bolt"></i> Actions rapides
+                </h6>
+            </div>
+            <div class="card-body">
+                <div class="row g-3">
+                    <div class="col-md-3">
+                        <a href="{{ url_for('add_mesure') }}" class="btn btn-success btn-lg w-100 rounded-3 d-flex align-items-center justify-content-center">
+                            <i class="fas fa-plus me-2"></i> Ajouter mesure
+                        </a>
+                    </div>
+                    <div class="col-md-3">
+                        <a href="{{ url_for('add_emplacement') }}" class="btn btn-info btn-lg w-100 rounded-3 d-flex align-items-center justify-content-center">
+                            <i class="fas fa-map-marker-alt me-2"></i> Ajouter emplacement
+                        </a>
+                    </div>
+                    <div class="col-md-3">
+                        <a href="{{ url_for('admin') }}" class="btn btn-warning btn-lg w-100 rounded-3 d-flex align-items-center justify-content-center">
+                            <i class="fas fa-cog me-2"></i> Administration
+                        </a>
+                    </div>
+                    <div class="col-md-3">
+                        <a href="{{ url_for('api_export_mesures') }}" class="btn btn-secondary btn-lg w-100 rounded-3 d-flex align-items-center justify-content-center">
+                            <i class="fas fa-download me-2"></i> Exporter
+                        </a>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
