@@ -1,0 +1,98 @@
+services:
+
+  mariadb:
+    image: mariadb:10.11
+    restart: unless-stopped
+    command: ["mariadbd", "--event-scheduler=ON"]
+    environment:
+      MARIADB_ROOT_PASSWORD: ${MYSQL_ROOT_PASSWORD}
+      MARIADB_DATABASE: ${MYSQL_DATABASE}
+      MARIADB_USER: ${MYSQL_USER}
+      MARIADB_PASSWORD: ${MYSQL_PASSWORD}
+    volumes:
+      - vol_BDD:/var/lib/mysql
+    networks:
+      - marais_net
+
+  phpmyadmin:
+    image: phpmyadmin/phpmyadmin
+    restart: unless-stopped
+    ports:
+      - "127.0.0.1:8080:80"
+    environment:
+      PMA_HOST: mariadb
+      PMA_ARBITRARY: 1
+    depends_on:
+      - mariadb
+    networks:
+      - marais_net
+
+  grafana:
+    image: grafana/grafana
+    restart: unless-stopped
+    ports:
+      - "127.0.0.1:3000:3000"
+    volumes:
+      - vol_grafana:/var/lib/grafana
+    networks:
+      - marais_net
+
+
+  mosquitto:
+    image: eclipse-mosquitto:2.0
+    restart: unless-stopped
+    ports:
+      - "1883:1883"       # MQTT standard
+      - "9001:9001"       # WebSocket MQTT (optionnel)
+    volumes:
+      - mosquitto_data:/mosquitto/data
+      - mosquitto_log:/mosquitto/log
+      - ./mosquitto/config:/mosquitto/config   # pour config personnalisée si besoin
+    networks:
+      - marais_net
+
+
+  web_app:
+    build:
+      context: ./web_app
+      dockerfile: Dockerfile
+    restart: unless-stopped
+    ports:
+      - "127.0.0.1:5000:5000"
+    environment:
+      MYSQL_DATABASE: ${MYSQL_WEB_DATABASE}
+      MYSQL_USER: ${MYSQL_WEB_USER}
+      MYSQL_PASSWORD: ${MYSQL_WEB_PASSWORD}
+      MYSQL_HOST: ${MYSQL_WEB_HOST}
+    depends_on:
+      - mariadb
+    networks:
+      - marais_net
+ 
+  test_runner:
+    image: alpine
+    depends_on:
+      - mariadb
+      - mosquitto
+      - phpmyadmin
+      - grafana
+      - web_app
+    volumes:
+      - ./tests:/tests
+    command: >
+      sh -c "
+      apk add --no-cache curl netcat-openbsd iputils &&
+      sh /tests/basic_connectivity_tests.sh
+      "
+    networks:
+      - marais_net
+
+volumes:
+  vol_BDD:
+  vol_grafana:
+  mosquitto_data:
+  mosquitto_log:
+
+networks:
+  marais_net:
+    driver: bridge
