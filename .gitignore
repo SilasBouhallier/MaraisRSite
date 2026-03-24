@@ -1,0 +1,16 @@
+# Python
+__pycache__/
+*.pyc
+
+# Docker volumes (si stockés localement)
+volumes/
+
+# Fichiers SQL (sauf si tu veux les partager, mais généralement non)
+*.sql
+
+# Environnement
+.env
+
+# Éditeurs
+.vscode/
+.DS_Store
