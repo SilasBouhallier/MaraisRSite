@@ -122,6 +122,7 @@ function saveSeuil(id) {
     fetch(`/api/seuils/${id}`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
+        credentials: 'same-origin',
         body: JSON.stringify({ alerte, danger })
     })
     .then(response => response.json())
@@ -171,6 +172,7 @@ function saveAllSeuils() {
     fetch('/api/seuils/all', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
+        credentials: 'same-origin',
         body: JSON.stringify({ seuils: seuilsData })
     })
     .then(response => response.json())
