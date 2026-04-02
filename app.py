@@ -1,4 +1,4 @@
-from flask import Flask, send_from_directory, request, session, redirect, url_for, make_response
+from flask import Flask, send_from_directory, request, session, redirect, url_for, make_response, render_template, jsonify
 import mysql.connector
 import bcrypt
 import logging
@@ -64,6 +64,51 @@ def index():
 def static_files(filename):
     return send_from_directory('static', filename)
 
+# Routes API pour les seuils
+@app.route('/api/seuils/<int:id_type_mesure>', methods=['POST'])
+@login_required
+def update_seuil(id_type_mesure):
+    data = request.get_json()
+    alerte = data.get('alerte')
+    danger = data.get('danger')
+    
+    if alerte is None or danger is None:
+        return jsonify({'error': 'Valeurs manquantes'}), 400
+    
+    conn = get_db()
+    cursor = conn.cursor()
+    cursor.execute(
+        "UPDATE type_info_mesure SET valeur_alerte_seuil = %s, valeur_danger_seuil = %s WHERE id_type_mesure = %s",
+        (alerte, danger, id_type_mesure)
+    )
+    conn.commit()
+    cursor.close()
+    conn.close()
+    
+    return jsonify({'success': True})
+
+@app.route('/api/seuils/all', methods=['POST'])
+@login_required
+def update_all_seuils():
+    data = request.get_json()
+    seuils = data.get('seuils', [])
+    
+    if not seuils:
+        return jsonify({'error': 'Aucune donnée'}), 400
+    
+    conn = get_db()
+    cursor = conn.cursor()
+    for s in seuils:
+        cursor.execute(
+            "UPDATE type_info_mesure SET valeur_alerte_seuil = %s, valeur_danger_seuil = %s WHERE id_type_mesure = %s",
+            (s['alerte'], s['danger'], s['id'])
+        )
+    conn.commit()
+    cursor.close()
+    conn.close()
+    
+    return jsonify({'success': True})
+
 # Route de connexion
 @app.route('/login', methods=['GET', 'POST'])
 def login():
@@ -80,7 +125,6 @@ def login():
         conn = get_db()
         if conn:
             cursor = conn.cursor(dictionary=True)
-            # On récupère l'utilisateur
             cursor.execute(
                 "SELECT * FROM utilisateur WHERE nom_utilisateur = %s",
                 (username,)
@@ -113,7 +157,19 @@ def logout():
     response.set_cookie('marais_session', '', expires=0, path='/')
     return response
 
-# Pages protégées
+# Pages protégées (dynamiques)
+@app.route('/seuils.html')
+@login_required
+def seuils():
+    conn = get_db()
+    cursor = conn.cursor(dictionary=True)
+    cursor.execute("SELECT * FROM type_info_mesure")
+    seuils = cursor.fetchall()
+    cursor.close()
+    conn.close()
+    return render_template('seuils.html', seuils=seuils)
+
+# Pages statiques (temporairement)
 @app.route('/sondes.html')
 @login_required
 def sondes():
@@ -123,11 +179,6 @@ def sondes():
 @login_required
 def alarmes():
     return send_from_directory('static', 'alarmes.html')
-
-@app.route('/seuils.html')
-@login_required
-def seuils():
-    return send_from_directory('static', 'seuils.html')
 
 @app.route('/settings.html')
 @login_required

@@ -1,0 +1,205 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Marais'R'Site - Configuration des seuils</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;500;600;700&family=Space+Mono:wght@400;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="/static/assets/templatemo-glass-admin-style.css">
+</head>
+<body>
+    <!-- Animated Background -->
+    <div class="background"></div>
+    <div class="orb orb-1"></div>
+    <div class="orb orb-2"></div>
+    <div class="orb orb-3"></div>
+
+    <div class="dashboard">
+        <!-- Sidebar (identique aux autres pages) -->
+        <aside class="sidebar" id="sidebar">
+            <div class="sidebar-header">
+                <div class="logo">M</div>
+                <span class="logo-text">Marais'R'Site</span>
+            </div>
+
+            <ul class="nav-menu">
+                <li class="nav-section">
+                    <span class="nav-section-title">Main Menu</span>
+                    <ul>
+                        <li class="nav-item">
+                            <a href="index.html" class="nav-link">
+                                <svg class="nav-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                                    <rect x="3" y="3" width="7" height="7" rx="1"/>
+                                    <rect x="14" y="3" width="7" height="7" rx="1"/>
+                                    <rect x="3" y="14" width="7" height="7" rx="1"/>
+                                    <rect x="14" y="14" width="7" height="7" rx="1"/>
+                                </svg>
+                                Dashboard
+                            </a>
+                        </li>
+                        <li class="nav-item">
+                            <a href="sondes.html" class="nav-link">
+                                <svg class="nav-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                                    <path d="M12 2L2 7l10 5 10-5-10-5z"/>
+                                    <path d="M2 17l10 5 10-5"/>
+                                    <path d="M2 12l10 5 10-5"/>
+                                </svg>
+                                Sondes
+                            </a>
+                        </li>
+                        <li class="nav-item">
+                            <a href="alarmes.html" class="nav-link">
+                                <svg class="nav-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                                    <path d="M18 8A6 6 0 0 0 6 8c0 7-3 9-3 9h18s-3-2-3-9"/>
+                                    <path d="M13.73 21a2 2 0 0 1-3.46 0"/>
+                                </svg>
+                                Alarmes
+                            </a>
+                        </li>
+                        <li class="nav-item">
+                            <a href="seuils.html" class="nav-link active">
+                                <svg class="nav-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                                    <path d="M4 4 L20 4 M4 8 L20 8 M4 12 L20 12 M4 16 L20 16 M4 20 L20 20"/>
+                                    <path d="M8 4 L8 20 M16 4 L16 20"/>
+                                </svg>
+                                Seuils
+                            </a>
+                        </li>
+                        <li class="nav-item">
+                            <a href="settings.html" class="nav-link">
+                                <svg class="nav-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                                    <circle cx="12" cy="12" r="3"/>
+                                    <path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 0 1 0 2.83 2 2 0 0 1-2.83 0l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-2 2 2 2 0 0 1-2-2v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 0 1-2.83 0 2 2 0 0 1 0-2.83l.06-.06a1.65 1.65 0 0 0 .33-1.82 1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1-2-2 2 2 0 0 1 2-2h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 0 1 0-2.83 2 2 0 0 1 2.83 0l.06.06a1.65 1.65 0 0 0 1.82.33H9a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 2-2 2 2 0 0 1 2 2v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 0 1 2.83 0 2 2 0 0 1 0 2.83l-.06.06a1.65 1.65 0 0 0-.33 1.82V9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 2 2 2 2 0 0 1-2 2h-.09a1.65 1.65 0 0 0-1.51 1z"/>
+                                </svg>
+                                Settings
+                            </a>
+                        </li>
+                    </ul>
+                </li>
+
+                <li class="nav-section">
+                    <span class="nav-section-title">Account</span>
+                    <ul>
+                        <li class="nav-item">
+                            <a href="login.html" class="nav-link">
+                                <svg class="nav-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                                    <path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4"/>
+                                    <polyline points="16 17 21 12 16 7"/>
+                                    <line x1="21" y1="12" x2="9" y2="12"/>
+                                </svg>
+                                Logout
+                            </a>
+                        </li>
+                    </ul>
+                </li>
+            </ul>
+        </aside>
+
+        <!-- Main Content -->
+        <main class="main-content">
+            <!-- Top Navbar -->
+            <nav class="navbar">
+                <h1 class="page-title">
+                    <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="margin-right: 10px;">
+                        <path d="M4 4 L20 4 M4 8 L20 8 M4 12 L20 12 M4 16 L20 16 M4 20 L20 20"/>
+                        <path d="M8 4 L8 20 M16 4 L16 20"/>
+                    </svg>
+                    Configuration des seuils
+                </h1>
+                <div class="navbar-right">
+                    <div class="search-box">
+                        <svg class="search-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                            <circle cx="11" cy="11" r="8"/>
+                            <line x1="21" y1="21" x2="16.65" y2="16.65"/>
+                        </svg>
+                        <input type="text" class="search-input" placeholder="Rechercher...">
+                    </div>
+                </div>
+            </nav>
+
+            <!-- Info Card : Zones de seuil (optionnel) -->
+            <section class="content-grid" style="margin-top: 20px;">
+                <div class="glass-card" style="grid-column: span 12; background: linear-gradient(135deg, rgba(0,255,0,0.05), rgba(255,165,0,0.05), rgba(255,0,0,0.05));">
+                    <div style="display: flex; align-items: center; gap: 20px; padding: 20px;">
+                        <svg width="48" height="48" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                            <circle cx="12" cy="12" r="10"/>
+                            <line x1="12" y1="12" x2="12" y2="16"/>
+                            <line x1="12" y1="12" x2="16" y2="12"/>
+                        </svg>
+                        <div>
+                            <h3 style="margin: 0 0 10px 0;">3 zones de seuil :</h3>
+                            <div style="display: flex; gap: 20px; flex-wrap: wrap;">
+                                <span style="display: flex; align-items: center; gap: 5px;">
+                                    <span style="display: inline-block; width: 16px; height: 16px; background: #10b981; border-radius: 4px;"></span>
+                                    <strong>Vert :</strong> En dessous du Seuil 1 (Normal)
+                                </span>
+                                <span style="display: flex; align-items: center; gap: 5px;">
+                                    <span style="display: inline-block; width: 16px; height: 16px; background: #f59e0b; border-radius: 4px;"></span>
+                                    <strong>Orange :</strong> Entre Seuil 1 et Seuil 2 (Critique)
+                                </span>
+                                <span style="display: flex; align-items: center; gap: 5px;">
+                                    <span style="display: inline-block; width: 16px; height: 16px; background: #ef4444; border-radius: 4px;"></span>
+                                    <strong>Rouge :</strong> Au-dessus du Seuil 2 (Très critique)
+                                </span>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </section>
+
+            <!-- Tableau des seuils (dynamique) -->
+            <section class="content-grid" style="margin-top: 20px;">
+                <div class="glass-card" style="grid-column: span 12;">
+                    <div class="card-header">
+                        <h2 class="card-title">Configuration des seuils par type de mesure</h2>
+                        <p class="card-subtitle">Définissez les deux niveaux d'alerte pour chaque paramètre</p>
+                    </div>
+                    <div class="table-wrapper">
+                        <table class="data-table">
+                            <thead>
+                                <tr>
+                                    <th>Type de mesure</th>
+                                    <th>Seuil d'alerte</th>
+                                    <th>Seuil de danger</th>
+                                    <th>Unité</th>
+                                    <th>Action</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                {% for seuil in seuils %}
+                                <tr>
+                                    <td>{{ seuil.nom_type_mesure }}</td>
+                                    <td><input type="number" value="{{ seuil.valeur_alerte_seuil }}" step="0.1" class="form-control" style="width:120px;"></td>
+                                    <td><input type="number" value="{{ seuil.valeur_danger_seuil }}" step="0.1" class="form-control" style="width:120px;"></td>
+                                    <td>{{ seuil.Unite }}</td>
+                                    <td><button class="btn btn-sm btn-success" onclick="saveSeuil({{ seuil.id_type_mesure }})">✓</button></td>
+                                </tr>
+                                {% endfor %}
+                            </tbody>
+                        </table>
+                    </div>
+                    <div style="text-align: right; margin: 20px;">
+                        <button class="btn btn-primary" onclick="saveAllSeuils()" style="display: inline-flex; align-items: center; gap: 8px;">
+                            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                                <path d="M19 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11l5 5v11a2 2 0 0 1-2 2z"/>
+                                <polyline points="17 21 17 13 7 13 7 21"/>
+                                <polyline points="7 3 7 8 15 8"/>
+                            </svg>
+                            Enregistrer tous les seuils
+                        </button>
+                    </div>
+                </div>
+            </section>
+        </main>
+    </div>
+
+    <footer class="site-footer">
+        <p>Marais'R'Site - Projet BTS CIEL © 2026</p>
+    </footer>
+
+    <script src="/static/assets/templatemo-glass-admin-script.js"></script>
+    <script src="/static/marais-site.js"></script>
+</body>
+</html>
