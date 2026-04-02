@@ -158,8 +158,8 @@ function saveAllSeuils() {
         
         seuilsData.push({
             id: id,
-            alerte: inputs[0].value,
-            danger: inputs[1].value
+            alerte: inputs[1].value,
+            danger: inputs[0].value
         });
     });
     

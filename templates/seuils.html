@@ -160,7 +160,7 @@
                         <table class="data-table">
                             <thead>
                                 <tr>
-                                    <th>Type de mesure</th>
+                                    <th>Type de mesure</th> 
                                     <th>Seuil d'alerte</th>
                                     <th>Seuil de danger</th>
                                     <th>Unité</th>
@@ -168,12 +168,12 @@
                                 </tr>
                             </thead>
                             <tbody>
-                                {% for seuil in seuils %}
+                                {% for seuil in seuils %}  
                                 <tr>
                                     <td>{{ seuil.nom_type_mesure }}</td>
                                     <td><input type="number" value="{{ seuil.valeur_alerte_seuil }}" step="0.1" class="form-control" style="width:120px;"></td>
                                     <td><input type="number" value="{{ seuil.valeur_danger_seuil }}" step="0.1" class="form-control" style="width:120px;"></td>
-                                    <td>{{ seuil.Unite }}</td>
+                                    <td>{{ seuil.Unité }}</td>
                                     <td><button class="btn btn-sm btn-success" onclick="saveSeuil({{ seuil.id_type_mesure }})">✓</button></td>
                                 </tr>
                                 {% endfor %}
@@ -200,6 +200,6 @@
     </footer>
 
     <script src="/static/assets/templatemo-glass-admin-script.js"></script>
-    <script src="/static/marais-site.js"></script>
+    <script src="/static/marais.js"></script>
 </body>
 </html>
