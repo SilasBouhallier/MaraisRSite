@@ -4,18 +4,16 @@ import bcrypt
 import logging
 from functools import wraps
 
-# Configuration des logs
 logging.basicConfig(level=logging.INFO)
 
 app = Flask(__name__)
 app.secret_key = 'une_cle_secrete_tres_longue_pour_la_session_2026'
 app.config['SESSION_COOKIE_NAME'] = 'marais_session'
 app.config['SESSION_COOKIE_HTTPONLY'] = True
-app.config['SESSION_COOKIE_SECURE'] = False  # True en production avec HTTPS
+app.config['SESSION_COOKIE_SECURE'] = False
 app.config['SESSION_COOKIE_SAMESITE'] = 'Lax'
-app.permanent_session_lifetime = 600  # 10 minutes
+app.permanent_session_lifetime = 600
 
-# Configuration de la base de données
 DB_CONFIG = {
     'host': 'mariadb',
     'user': 'Marais_R_Site_User',
@@ -26,17 +24,13 @@ DB_CONFIG = {
     'collation': 'utf8mb4_general_ci'
 }
 
-# Fonctions de hashage avec bcrypt
 def hash_password(password):
-    """Génère un hash bcrypt (sel inclus)"""
     salt = bcrypt.gensalt()
     return bcrypt.hashpw(password.encode(), salt).decode()
 
 def verify_password(password, stored_hash):
-    """Vérifie le mot de passe avec bcrypt"""
     return bcrypt.checkpw(password.encode(), stored_hash.encode())
 
-# Connexion à la base de données
 def get_db():
     try:
         return mysql.connector.connect(**DB_CONFIG)
@@ -44,7 +38,6 @@ def get_db():
         print(f"Erreur BDD: {err}")
         return None
 
-# Décorateur pour protéger les pages
 def login_required(f):
     @wraps(f)
     def decorated(*args, **kwargs):
@@ -53,7 +46,6 @@ def login_required(f):
         return f(*args, **kwargs)
     return decorated
 
-# Routes pour les fichiers statiques
 @app.route('/')
 def index():
     if 'user_id' in session:
@@ -64,91 +56,33 @@ def index():
 def static_files(filename):
     return send_from_directory('static', filename)
 
-# Routes API pour les seuils
-@app.route('/api/seuils/<int:id_type_mesure>', methods=['POST'])
-@login_required
-def update_seuil(id_type_mesure):
-    data = request.get_json()
-    alerte = data.get('alerte')
-    danger = data.get('danger')
-    
-    if alerte is None or danger is None:
-        return jsonify({'error': 'Valeurs manquantes'}), 400
-    
-    conn = get_db()
-    cursor = conn.cursor()
-    cursor.execute(
-        "UPDATE type_info_mesure SET valeur_alerte_seuil = %s, valeur_danger_seuil = %s WHERE id_type_mesure = %s",
-        (alerte, danger, id_type_mesure)
-    )
-    conn.commit()
-    cursor.close()
-    conn.close()
-    
-    return jsonify({'success': True})
-
-@app.route('/api/seuils/all', methods=['POST'])
-@login_required
-def update_all_seuils():
-    data = request.get_json()
-    seuils = data.get('seuils', [])
-    
-    if not seuils:
-        return jsonify({'error': 'Aucune donnée'}), 400
-    
-    conn = get_db()
-    cursor = conn.cursor()
-    for s in seuils:
-        cursor.execute(
-            "UPDATE type_info_mesure SET valeur_alerte_seuil = %s, valeur_danger_seuil = %s WHERE id_type_mesure = %s",
-            (s['alerte'], s['danger'], s['id'])
-        )
-    conn.commit()
-    cursor.close()
-    conn.close()
-    
-    return jsonify({'success': True})
-
-# Route de connexion
 @app.route('/login', methods=['GET', 'POST'])
 def login():
-    # Départ propre : on vide toute session résiduelle
     session.clear()
-
     if request.method == 'POST':
         username = request.form.get('username')
         password = request.form.get('password')
-
         if not username or not password:
             return "<script>alert('Remplis tous les champs'); window.location.href='/login';</script>"
-
         conn = get_db()
         if conn:
             cursor = conn.cursor(dictionary=True)
-            cursor.execute(
-                "SELECT * FROM utilisateur WHERE nom_utilisateur = %s",
-                (username,)
-            )
+            cursor.execute("SELECT * FROM utilisateur WHERE nom_utilisateur = %s", (username,))
             user = cursor.fetchone()
             cursor.close()
             conn.close()
-
             if user and verify_password(password, user['mot_de_passe_utilisateur']):
                 session.permanent = True
                 session['user_id'] = user['id_utilisateur']
                 session['username'] = user['nom_utilisateur']
                 session['role'] = user['role_utilisateur']
-                app.logger.info("✅ Session créée avec succès")
-                app.logger.info(session)
                 return redirect(url_for('index'))
             else:
                 return "<script>alert('Identifiants incorrects'); window.location.href='/login';</script>"
         else:
             return "<script>alert('Erreur de connexion BDD'); window.location.href='/login';</script>"
-
     return send_from_directory('static', 'login.html')
 
-# Route de déconnexion
 @app.route('/logout')
 def logout():
     session.clear()
@@ -157,7 +91,7 @@ def logout():
     response.set_cookie('marais_session', '', expires=0, path='/')
     return response
 
-# Pages protégées (dynamiques)
+# ========== SEUILS ==========
 @app.route('/seuils.html')
 @login_required
 def seuils():
@@ -169,12 +103,144 @@ def seuils():
     conn.close()
     return render_template('seuils.html', seuils=seuils)
 
-# Pages statiques (temporairement)
+@app.route('/api/seuils/<int:id_type_mesure>', methods=['POST'])
+@login_required
+def update_seuil(id_type_mesure):
+    data = request.get_json()
+    alerte = data.get('alerte')
+    danger = data.get('danger')
+    if alerte is None or danger is None:
+        return jsonify({'error': 'Valeurs manquantes'}), 400
+    conn = get_db()
+    cursor = conn.cursor()
+    cursor.execute("UPDATE type_info_mesure SET valeur_alerte_seuil = %s, valeur_danger_seuil = %s WHERE id_type_mesure = %s", (alerte, danger, id_type_mesure))
+    conn.commit()
+    cursor.close()
+    conn.close()
+    return jsonify({'success': True})
+
+@app.route('/api/seuils/all', methods=['POST'])
+@login_required
+def update_all_seuils():
+    data = request.get_json()
+    seuils = data.get('seuils', [])
+    if not seuils:
+        return jsonify({'error': 'Aucune donnée'}), 400
+    conn = get_db()
+    cursor = conn.cursor()
+    for s in seuils:
+        cursor.execute("UPDATE type_info_mesure SET valeur_alerte_seuil = %s, valeur_danger_seuil = %s WHERE id_type_mesure = %s", (s['alerte'], s['danger'], s['id']))
+    conn.commit()
+    cursor.close()
+    conn.close()
+    return jsonify({'success': True})
+
+# ========== SONDES ==========
 @app.route('/sondes.html')
 @login_required
 def sondes():
-    return send_from_directory('static', 'sondes.html')
+    conn = get_db()
+    cursor = conn.cursor(dictionary=True)
+    cursor.execute("""
+        SELECT s.id_sonde, s.nom_sonde, e.nom_emplacement
+        FROM sonde s
+        LEFT JOIN emplacement e ON s.id_sonde = e.id_sonde
+    """)
+    sondes = cursor.fetchall()
+    cursor.close()
+    conn.close()
+    return render_template('sondes.html', sondes=sondes)
 
+@app.route('/api/sondes', methods=['POST'])
+@login_required
+def add_sonde():
+    data = request.get_json()
+    nom = data.get('nom')
+    localisation = data.get('localisation')
+    machine = data.get('machine')
+    if not nom or not localisation or not machine:
+        return jsonify({'success': False, 'error': 'Champs manquants'}), 400
+    type_mapping = {'Atelier bois': 1, 'Zone peinture': 2, 'Zone collage': 2}
+    id_type = type_mapping.get(localisation, 1)
+    conn = get_db()
+    cursor = conn.cursor()
+    cursor.execute("INSERT INTO sonde (nom_sonde) VALUES (%s)", (nom,))
+    sonde_id = cursor.lastrowid
+    cursor.execute("INSERT INTO emplacement (nom_emplacement, id_type_emplacement, id_sonde) VALUES (%s, %s, %s)", (machine, id_type, sonde_id))
+    conn.commit()
+    cursor.close()
+    conn.close()
+    return jsonify({'success': True, 'id': sonde_id})
+
+@app.route('/api/sondes/<int:id_sonde>', methods=['GET'])
+@login_required
+def get_sonde(id_sonde):
+    conn = get_db()
+    cursor = conn.cursor(dictionary=True)
+    cursor.execute("""
+        SELECT s.id_sonde, s.nom_sonde, e.nom_emplacement AS machine,
+               CASE 
+                   WHEN te.nom_type_emplacement = 'machine' THEN 'Atelier bois'
+                   WHEN te.nom_type_emplacement = 'salle' THEN 'Zone peinture'
+                   ELSE ''
+               END AS localisation_principale
+        FROM sonde s
+        LEFT JOIN emplacement e ON s.id_sonde = e.id_sonde
+        LEFT JOIN type_emplacement te ON e.id_type_emplacement = te.id_type_emplacement
+        WHERE s.id_sonde = %s
+    """, (id_sonde,))
+    sonde = cursor.fetchone()
+    cursor.close()
+    conn.close()
+    if not sonde:
+        return jsonify({'error': 'Sonde non trouvée'}), 404
+    return jsonify(sonde)
+
+@app.route('/api/sondes/<int:id_sonde>', methods=['PUT'])
+@login_required
+def update_sonde(id_sonde):
+    data = request.get_json()
+    nom = data.get('nom')
+    localisation = data.get('localisation')
+    machine = data.get('machine')
+    if not nom or not localisation or not machine:
+        return jsonify({'success': False, 'error': 'Champs manquants'}), 400
+
+    type_mapping = {'Atelier bois': 1, 'Zone peinture': 2, 'Zone collage': 2}
+    id_type = type_mapping.get(localisation, 1)
+
+    conn = get_db()
+    cursor = conn.cursor()
+
+    cursor.execute("UPDATE sonde SET nom_sonde = %s WHERE id_sonde = %s", (nom, id_sonde))
+
+    cursor.execute("SELECT id_emplacement FROM emplacement WHERE id_sonde = %s", (id_sonde,))
+    row = cursor.fetchone()
+    if row:
+        cursor.execute("UPDATE emplacement SET nom_emplacement = %s, id_type_emplacement = %s WHERE id_sonde = %s",
+                       (machine, id_type, id_sonde))
+    else:
+        cursor.execute("INSERT INTO emplacement (nom_emplacement, id_type_emplacement, id_sonde) VALUES (%s, %s, %s)",
+                       (machine, id_type, id_sonde))
+
+    conn.commit()
+    cursor.close()
+    conn.close()
+    return jsonify({'success': True})
+
+@app.route('/api/sondes/<int:id_sonde>', methods=['DELETE'])
+@login_required
+def delete_sonde(id_sonde):
+    conn = get_db()
+    cursor = conn.cursor()
+    cursor.execute("DELETE FROM emplacement WHERE id_sonde = %s", (id_sonde,))
+    cursor.execute("DELETE FROM sonde WHERE id_sonde = %s", (id_sonde,))
+    conn.commit()
+    cursor.close()
+    conn.close()
+    return jsonify({'success': True})
+
+# ========== AUTRES ==========
 @app.route('/alarmes.html')
 @login_required
 def alarmes():
@@ -185,7 +251,6 @@ def alarmes():
 def settings():
     return send_from_directory('static', 'settings.html')
 
-# API de test
 @app.route('/api/test')
 def test():
     return {"message": "OK"}
