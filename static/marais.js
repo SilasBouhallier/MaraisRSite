@@ -2,6 +2,7 @@
 // Marais'R'Site - Fonctions personnalisées
 // ============================================
 
+// === GESTION DES MODALS ===
 function openModal(modalId) {
     const modal = document.getElementById(modalId);
     if (modal) modal.style.display = 'flex';
@@ -11,7 +12,7 @@ function closeModal(modalId) {
     if (modal) modal.style.display = 'none';
 }
 
-// === SONDES : AJOUT ===
+// === SONDES ===
 function addSonde() {
     const nom = document.getElementById('sondeNom')?.value;
     const localisation = document.getElementById('sondeLocalisation')?.value;
@@ -37,42 +38,14 @@ function addSonde() {
     });
 }
 
-// === SONDES : OUVERTURE MODAL DE MODIFICATION ===
-function openEditModal(id) {
-    fetch(`/api/sondes/${id}`)
-        .then(response => response.json())
-        .then(data => {
-            document.getElementById('editSondeId').value = data.id_sonde;
-            document.getElementById('editSondeNom').value = data.nom_sonde;
-            document.getElementById('editSondeMachine').value = data.machine || '';
-            const select = document.getElementById('editSondeLocalisation');
-            if (data.localisation_principale) {
-                select.value = data.localisation_principale;
-            } else {
-                select.value = '';
-            }
-            openModal('editSondeModal');
-        })
-        .catch(error => console.error('Erreur fetch:', error));
-}
-
-// === SONDES : ENVOI MODIFICATION ===
-function updateSonde() {
-    const id = document.getElementById('editSondeId').value;
-    const nom = document.getElementById('editSondeNom').value;
-    const localisation = document.getElementById('editSondeLocalisation').value;
-    const machine = document.getElementById('editSondeMachine').value;
-
-    if (!nom || !localisation || !machine) {
-        alert('Veuillez remplir tous les champs');
-        return;
-    }
-
+function editSonde(id) {
+    const nouveauNom = prompt("Nouveau nom de la sonde :");
+    if (!nouveauNom) return;
     fetch(`/api/sondes/${id}`, {
         method: 'PUT',
         headers: { 'Content-Type': 'application/json' },
         credentials: 'same-origin',
-        body: JSON.stringify({ nom, localisation, machine })
+        body: JSON.stringify({ nom: nouveauNom })
     })
     .then(response => response.json())
     .then(data => {
@@ -80,12 +53,11 @@ function updateSonde() {
             alert('Sonde modifiée');
             location.reload();
         } else {
-            alert('Erreur : ' + (data.error || 'inconnue'));
+            alert('Erreur');
         }
     });
 }
 
-// === SONDES : SUPPRESSION ===
 function deleteSonde(id) {
     if (confirm('Supprimer cette sonde ?')) {
         fetch(`/api/sondes/${id}`, {
@@ -104,9 +76,72 @@ function deleteSonde(id) {
     }
 }
 
-// === ALARMES (à implémenter) ===
-function updateAlarmeMachineOptions() {}
-function addAlarme() { alert('Fonction à implémenter pour les alarmes'); }
+// === ALARMES ===
+function addAlarme() {
+    const nom = document.getElementById('alarmeNom')?.value;
+    const id_emplacement = document.getElementById('alarmeEmplacement')?.value;
+    if (!nom) {
+        alert('Veuillez entrer un nom');
+        return;
+    }
+    fetch('/api/alarmes', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        credentials: 'same-origin',
+        body: JSON.stringify({ nom, id_emplacement: id_emplacement || null })
+    })
+    .then(response => response.json())
+    .then(data => {
+        if (data.success) {
+            alert('Alarme ajoutée');
+            location.reload();
+        } else {
+            alert('Erreur : ' + (data.error || 'inconnue'));
+        }
+    });
+}
+
+function editAlarme(id) {
+    const nouveauNom = prompt("Nouveau nom de l'alarme :");
+    if (!nouveauNom) return;
+    fetch(`/api/alarmes/${id}`, {
+        method: 'PUT',
+        headers: { 'Content-Type': 'application/json' },
+        credentials: 'same-origin',
+        body: JSON.stringify({ nom: nouveauNom })
+    })
+    .then(response => response.json())
+    .then(data => {
+        if (data.success) {
+            alert('Alarme modifiée');
+            location.reload();
+        } else {
+            alert('Erreur');
+        }
+    });
+}
+
+function deleteAlarme(id) {
+    if (confirm('Supprimer cette alarme ?')) {
+        fetch(`/api/alarmes/${id}`, {
+            method: 'DELETE',
+            credentials: 'same-origin'
+        })
+        .then(response => response.json())
+        .then(data => {
+            if (data.success) {
+                alert('Alarme supprimée');
+                location.reload();
+            } else {
+                alert('Erreur');
+            }
+        });
+    }
+}
+
+function testAlarme(id) {
+    alert(`Test de l'alarme ${id} (simulation)`);
+}
 
 // === SEUILS ===
 function saveSeuil(id) {
@@ -164,9 +199,11 @@ window.addEventListener('click', function(event) {
     if (event.target.classList?.contains('modal')) event.target.style.display = 'none';
 });
 
+// === INITIALISATION ===
 document.addEventListener('DOMContentLoaded', function() {
     console.log('Marais\'R\'Site JS chargé');
     const path = window.location.pathname;
     if (path.includes('sondes.html')) console.log('Page sondes détectée');
+    if (path.includes('alarmes.html')) console.log('Page alarmes détectée');
     if (path.includes('seuils.html')) console.log('Page seuils détectée');
 });

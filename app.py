@@ -172,57 +172,16 @@ def add_sonde():
     conn.close()
     return jsonify({'success': True, 'id': sonde_id})
 
-@app.route('/api/sondes/<int:id_sonde>', methods=['GET'])
-@login_required
-def get_sonde(id_sonde):
-    conn = get_db()
-    cursor = conn.cursor(dictionary=True)
-    cursor.execute("""
-        SELECT s.id_sonde, s.nom_sonde, e.nom_emplacement AS machine,
-               CASE 
-                   WHEN te.nom_type_emplacement = 'machine' THEN 'Atelier bois'
-                   WHEN te.nom_type_emplacement = 'salle' THEN 'Zone peinture'
-                   ELSE ''
-               END AS localisation_principale
-        FROM sonde s
-        LEFT JOIN emplacement e ON s.id_sonde = e.id_sonde
-        LEFT JOIN type_emplacement te ON e.id_type_emplacement = te.id_type_emplacement
-        WHERE s.id_sonde = %s
-    """, (id_sonde,))
-    sonde = cursor.fetchone()
-    cursor.close()
-    conn.close()
-    if not sonde:
-        return jsonify({'error': 'Sonde non trouvée'}), 404
-    return jsonify(sonde)
-
 @app.route('/api/sondes/<int:id_sonde>', methods=['PUT'])
 @login_required
 def update_sonde(id_sonde):
     data = request.get_json()
     nom = data.get('nom')
-    localisation = data.get('localisation')
-    machine = data.get('machine')
-    if not nom or not localisation or not machine:
-        return jsonify({'success': False, 'error': 'Champs manquants'}), 400
-
-    type_mapping = {'Atelier bois': 1, 'Zone peinture': 2, 'Zone collage': 2}
-    id_type = type_mapping.get(localisation, 1)
-
+    if not nom:
+        return jsonify({'success': False, 'error': 'Nom manquant'}), 400
     conn = get_db()
     cursor = conn.cursor()
-
     cursor.execute("UPDATE sonde SET nom_sonde = %s WHERE id_sonde = %s", (nom, id_sonde))
-
-    cursor.execute("SELECT id_emplacement FROM emplacement WHERE id_sonde = %s", (id_sonde,))
-    row = cursor.fetchone()
-    if row:
-        cursor.execute("UPDATE emplacement SET nom_emplacement = %s, id_type_emplacement = %s WHERE id_sonde = %s",
-                       (machine, id_type, id_sonde))
-    else:
-        cursor.execute("INSERT INTO emplacement (nom_emplacement, id_type_emplacement, id_sonde) VALUES (%s, %s, %s)",
-                       (machine, id_type, id_sonde))
-
     conn.commit()
     cursor.close()
     conn.close()
@@ -240,12 +199,72 @@ def delete_sonde(id_sonde):
     conn.close()
     return jsonify({'success': True})
 
-# ========== AUTRES ==========
+# ========== ALARMES ==========
 @app.route('/alarmes.html')
 @login_required
 def alarmes():
-    return send_from_directory('static', 'alarmes.html')
+    conn = get_db()
+    cursor = conn.cursor(dictionary=True)
+    cursor.execute("""
+        SELECT a.id_alarme, a.nom_alarme, e.nom_emplacement
+        FROM alarme a
+        LEFT JOIN installe i ON a.id_alarme = i.id_alarme
+        LEFT JOIN emplacement e ON i.id_emplacement = e.id_emplacement
+    """)
+    alarmes = cursor.fetchall()
+    cursor.execute("SELECT id_emplacement, nom_emplacement FROM emplacement")
+    emplacements = cursor.fetchall()
+    cursor.close()
+    conn.close()
+    return render_template('alarmes.html', alarmes=alarmes, emplacements=emplacements)
 
+@app.route('/api/alarmes', methods=['POST'])
+@login_required
+def add_alarme():
+    data = request.get_json()
+    nom = data.get('nom')
+    id_emplacement = data.get('id_emplacement')
+    if not nom:
+        return jsonify({'success': False, 'error': 'Nom manquant'}), 400
+    conn = get_db()
+    cursor = conn.cursor()
+    cursor.execute("INSERT INTO alarme (nom_alarme) VALUES (%s)", (nom,))
+    alarme_id = cursor.lastrowid
+    if id_emplacement:
+        cursor.execute("INSERT INTO installe (id_alarme, id_emplacement) VALUES (%s, %s)", (alarme_id, id_emplacement))
+    conn.commit()
+    cursor.close()
+    conn.close()
+    return jsonify({'success': True})
+
+@app.route('/api/alarmes/<int:id_alarme>', methods=['PUT'])
+@login_required
+def update_alarme(id_alarme):
+    data = request.get_json()
+    nom = data.get('nom')
+    if not nom:
+        return jsonify({'success': False, 'error': 'Nom manquant'}), 400
+    conn = get_db()
+    cursor = conn.cursor()
+    cursor.execute("UPDATE alarme SET nom_alarme = %s WHERE id_alarme = %s", (nom, id_alarme))
+    conn.commit()
+    cursor.close()
+    conn.close()
+    return jsonify({'success': True})
+
+@app.route('/api/alarmes/<int:id_alarme>', methods=['DELETE'])
+@login_required
+def delete_alarme(id_alarme):
+    conn = get_db()
+    cursor = conn.cursor()
+    cursor.execute("DELETE FROM installe WHERE id_alarme = %s", (id_alarme,))
+    cursor.execute("DELETE FROM alarme WHERE id_alarme = %s", (id_alarme,))
+    conn.commit()
+    cursor.close()
+    conn.close()
+    return jsonify({'success': True})
+
+# ========== AUTRES ==========
 @app.route('/settings.html')
 @login_required
 def settings():
