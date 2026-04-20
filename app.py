@@ -47,10 +47,41 @@ def login_required(f):
     return decorated
 
 @app.route('/')
+@login_required
 def index():
-    if 'user_id' in session:
-        return send_from_directory('static', 'index.html')
-    return redirect(url_for('login'))
+    conn = get_db()
+    cursor = conn.cursor(dictionary=True)
+    
+    # Nombre de sondes
+    cursor.execute("SELECT COUNT(*) as total FROM sonde")
+    nb_sondes = cursor.fetchone()['total']
+    
+    # Nombre d'alarmes
+    cursor.execute("SELECT COUNT(*) as total FROM alarme")
+    nb_alarmes = cursor.fetchone()['total']
+    
+    # Nombre de seuils
+    cursor.execute("SELECT COUNT(*) as total FROM type_info_mesure")
+    nb_seuils = cursor.fetchone()['total']
+    
+    # 5 dernières mesures
+    cursor.execute("""
+        SELECT m.valeur_mesure, m.date_heure_mesure, e.nom_emplacement
+        FROM mesure m
+        LEFT JOIN emplacement e ON m.id_emplacement = e.id_emplacement
+        ORDER BY m.date_heure_mesure DESC
+        LIMIT 5
+    """)
+    mesures = cursor.fetchall()
+    
+    cursor.close()
+    conn.close()
+    
+    return render_template('index.html', 
+                          nb_sondes=nb_sondes,
+                          nb_alarmes=nb_alarmes,
+                          nb_seuils=nb_seuils,
+                          mesures=mesures)
 
 @app.route('/<path:filename>')
 def static_files(filename):
