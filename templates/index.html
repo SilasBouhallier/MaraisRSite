@@ -79,6 +79,20 @@
                         </li>
                     </ul>
                 </li>
+
+                <li class="nav-item">
+    <a href="https://marais2026.btssn.ovh/grafana/d/adwmv2l/new-dashboard?orgId=1&from=2026-03-31T13:33:27.000Z&to=2026-04-09T16:06:04.000Z&timezone=browser&var-type_mesure=ECO2&viewPanel=panel-3
+" target="_blank" class="nav-link">
+        <svg ...>...</svg>
+        Courbes (ECO2)
+    </a>
+</li>
+<li class="nav-item">
+    <a href="https://marais2026.btssn.ovh/grafana/d/adwmv2l/new-dashboard?orgId=1&from=2026-03-31T13:33:27.000Z&to=2026-04-09T16:06:04.000Z&timezone=browser&var-type_mesure=ECO2&viewPanel=panel-4" target="_blank" class="nav-link">
+        <svg ...>...</svg>
+        Histogramme (ECO2)
+    </a>
+</li>
                 <li class="nav-section">
                     <span class="nav-section-title">Account</span>
                     <ul>
@@ -163,55 +177,42 @@
             </section>
 
             <!-- Dernières mesures -->
-            <section class="content-grid">
-                <div class="glass-card" style="grid-column: span 12;">
-                    <div class="card-header">
-                        <h2 class="card-title">📊 Dernières mesures</h2>
-                        <p class="card-subtitle">Les 5 dernières valeurs enregistrées</p>
-                    </div>
-                    <div class="table-wrapper">
-                        <table class="data-table">
-                            <thead>
-                                <tr>
-                                    <th>Valeur</th>
-                                    <th>Date et heure</th>
-                                    <th>Emplacement</th>
-                                </tr>
-                            </thead>
-                            <tbody>
-                                {% for m in mesures %}
-                                <tr>
-                                    <td>{{ m.valeur_mesure }} {{ m.unite or 'µg/m³' }}</td>
-                                    <td>{{ m.date_heure_mesure }}</td>
-                                    <td>{{ m.nom_emplacement or 'Non défini' }}</td>
-                                </tr>
-                                {% else %}
-                                <tr>
-                                    <td colspan="3" class="text-center">Aucune mesure pour le moment</td>
-                                </tr>
-                                {% endfor %}
-                            </tbody>
-                        </table>
-                    </div>
-                </div>
-            </section>
-            <!-- Graphique Grafana intégré -->
 <section class="content-grid">
     <div class="glass-card" style="grid-column: span 12;">
         <div class="card-header">
-            <h2 class="card-title">📈 Évolution des mesures</h2>
-            <p class="card-subtitle">Courbes par type de mesure (CO2, PM2.5, TVOC)</p>
+            <h2 class="card-title">📊 Dernières mesures</h2>
+            <p class="card-subtitle">Les 5 dernières valeurs enregistrées</p>
         </div>
-        <div class="card-body">
-            <iframe src="http://localhost:3000" width="100%" height="400" frameborder="0"></iframe>
+        <div class="table-wrapper">
+            <table class="data-table">
+                <thead>
+                    <tr>
+                        <th>Type</th>
+                        <th>Valeur</th>
+                        <th>Date et heure</th>
+                        <th>Emplacement</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for m in mesures %}
+                    <tr>
+                        <td>{{ m.nom_type_mesure }}</td>
+                        <td>{{ m.valeur_mesure }} {{ m.unite or 'µg/m³' }}</td>
+                        <td>{{ m.date_heure_mesure }}</td>
+                        <td>{{ m.nom_emplacement or 'Non défini' }}</td>
+                    </tr>
+                    {% else %}
+                    <tr>
+                        <td colspan="4" class="text-center">Aucune mesure pour le moment</td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
         </div>
     </div>
 </section>
 
             
-        </main>
-    </div>
-
     <footer class="site-footer">
         <p>Marais'R'Site - Projet BTS CIEL © 2026</p>
     </footer>

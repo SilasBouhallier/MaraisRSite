@@ -47,27 +47,27 @@ def login_required(f):
     return decorated
 
 @app.route('/')
-@login_required
 def index():
+    if 'user_id' not in session:
+        return redirect(url_for('login'))
     conn = get_db()
     cursor = conn.cursor(dictionary=True)
     
     # Nombre de sondes
     cursor.execute("SELECT COUNT(*) as total FROM sonde")
     nb_sondes = cursor.fetchone()['total']
-    
     # Nombre d'alarmes
     cursor.execute("SELECT COUNT(*) as total FROM alarme")
     nb_alarmes = cursor.fetchone()['total']
-    
     # Nombre de seuils
     cursor.execute("SELECT COUNT(*) as total FROM type_info_mesure")
     nb_seuils = cursor.fetchone()['total']
     
-    # 5 dernières mesures
+    # 5 dernières mesures avec le type de mesure
     cursor.execute("""
-        SELECT m.valeur_mesure, m.date_heure_mesure, e.nom_emplacement
+        SELECT m.valeur_mesure, m.date_heure_mesure, t.nom_type_mesure, e.nom_emplacement
         FROM mesure m
+        JOIN type_info_mesure t ON m.id_type_mesure = t.id_type_mesure
         LEFT JOIN emplacement e ON m.id_emplacement = e.id_emplacement
         ORDER BY m.date_heure_mesure DESC
         LIMIT 5
@@ -76,12 +76,11 @@ def index():
     
     cursor.close()
     conn.close()
-    
-    return render_template('index.html', 
-                          nb_sondes=nb_sondes,
-                          nb_alarmes=nb_alarmes,
-                          nb_seuils=nb_seuils,
-                          mesures=mesures)
+    return render_template('index.html',
+                           nb_sondes=nb_sondes,
+                           nb_alarmes=nb_alarmes,
+                           nb_seuils=nb_seuils,
+                           mesures=mesures)
 
 @app.route('/<path:filename>')
 def static_files(filename):
@@ -144,7 +143,11 @@ def update_seuil(id_type_mesure):
         return jsonify({'error': 'Valeurs manquantes'}), 400
     conn = get_db()
     cursor = conn.cursor()
-    cursor.execute("UPDATE type_info_mesure SET valeur_alerte_seuil = %s, valeur_danger_seuil = %s WHERE id_type_mesure = %s", (alerte, danger, id_type_mesure))
+    cursor.execute("""
+        UPDATE type_info_mesure
+        SET valeur_alerte_seuil = %s, valeur_danger_seuil = %s
+        WHERE id_type_mesure = %s
+    """, (alerte, danger, id_type_mesure))
     conn.commit()
     cursor.close()
     conn.close()
@@ -160,7 +163,11 @@ def update_all_seuils():
     conn = get_db()
     cursor = conn.cursor()
     for s in seuils:
-        cursor.execute("UPDATE type_info_mesure SET valeur_alerte_seuil = %s, valeur_danger_seuil = %s WHERE id_type_mesure = %s", (s['alerte'], s['danger'], s['id']))
+        cursor.execute("""
+            UPDATE type_info_mesure
+            SET valeur_alerte_seuil = %s, valeur_danger_seuil = %s
+            WHERE id_type_mesure = %s
+        """, (s['alerte'], s['danger'], s['id']))
     conn.commit()
     cursor.close()
     conn.close()
@@ -197,7 +204,10 @@ def add_sonde():
     cursor = conn.cursor()
     cursor.execute("INSERT INTO sonde (nom_sonde) VALUES (%s)", (nom,))
     sonde_id = cursor.lastrowid
-    cursor.execute("INSERT INTO emplacement (nom_emplacement, id_type_emplacement, id_sonde) VALUES (%s, %s, %s)", (machine, id_type, sonde_id))
+    cursor.execute("""
+        INSERT INTO emplacement (nom_emplacement, id_type_emplacement, id_sonde)
+        VALUES (%s, %s, %s)
+    """, (machine, id_type, sonde_id))
     conn.commit()
     cursor.close()
     conn.close()
@@ -239,8 +249,7 @@ def alarmes():
     cursor.execute("""
         SELECT a.id_alarme, a.nom_alarme, e.nom_emplacement
         FROM alarme a
-        LEFT JOIN installe i ON a.id_alarme = i.id_alarme
-        LEFT JOIN emplacement e ON i.id_emplacement = e.id_emplacement
+        LEFT JOIN emplacement e ON a.id_alarme = e.id_alarme
     """)
     alarmes = cursor.fetchall()
     cursor.execute("SELECT id_emplacement, nom_emplacement FROM emplacement")
@@ -262,7 +271,10 @@ def add_alarme():
     cursor.execute("INSERT INTO alarme (nom_alarme) VALUES (%s)", (nom,))
     alarme_id = cursor.lastrowid
     if id_emplacement:
-        cursor.execute("INSERT INTO installe (id_alarme, id_emplacement) VALUES (%s, %s)", (alarme_id, id_emplacement))
+        cursor.execute("""
+            INSERT INTO installe (id_alarme, id_emplacement)
+            VALUES (%s, %s)
+        """, (alarme_id, id_emplacement))
     conn.commit()
     cursor.close()
     conn.close()
