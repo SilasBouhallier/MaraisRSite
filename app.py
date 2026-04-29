@@ -2,6 +2,7 @@ from flask import Flask, send_from_directory, request, session, redirect, url_fo
 import mysql.connector
 import bcrypt
 import logging
+import paho.mqtt.client as mqtt
 from functools import wraps
 
 logging.basicConfig(level=logging.INFO)
@@ -306,6 +307,18 @@ def delete_alarme(id_alarme):
     cursor.close()
     conn.close()
     return jsonify({'success': True})
+
+@app.route('/api/alarmes/test', methods=['POST'])
+@login_required
+def test_alarme():
+    data = request.get_json()
+    id_alarme = data.get('id_alarme')
+    
+    # Envoi de la commande via MQTT
+    client = mqtt.Client()
+    client.connect("mosquitto", 1883, 60)
+    client.publish("gyrophare/commande", f"ALARME_{id_alarme}_TEST")
+    client.disconnect()
 
 # ========== AUTRES ==========
 @app.route('/settings.html')

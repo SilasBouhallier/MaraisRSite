@@ -1,7 +1,7 @@
 version: "3.9"
 
 services:
-  # Service de l'étudiant 3 : base de données
+  # Service : base de données
   mariadb:
     image: mariadb:10.11
     restart: unless-stopped
@@ -30,7 +30,7 @@ services:
     networks:
       - marais_net
 
-  # Grafana pour les graphiques (étudiant 3)
+  # Grafana pour les graphiques 
   grafana:
     image: grafana/grafana
     restart: unless-stopped
@@ -41,7 +41,7 @@ services:
     networks:
       - marais_net
 
-  # Mosquitto pour la communication MQTT (étudiant 2)
+  # Mosquitto pour la communication MQTT
   mosquitto:
     image: eclipse-mosquitto:2.0
     restart: unless-stopped
@@ -55,7 +55,7 @@ services:
     networks:
       - marais_net
 
-  # TON service (ton application Flask)
+  # MON service (ton application Flask)
   web:
     build: .
     ports:

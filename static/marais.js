@@ -140,7 +140,11 @@ function deleteAlarme(id) {
 }
 
 function testAlarme(id) {
-    alert(`Test de l'alarme ${id} (simulation)`);
+    fetch('/api/alarmes/test', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ id_alarme: id })
+    });
 }
 
 // === SEUILS ===
