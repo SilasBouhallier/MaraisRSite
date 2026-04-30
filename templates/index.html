@@ -211,7 +211,7 @@
             <!-- Menus déroulants -->
             <div style="margin-bottom: 20px;">
                 <label style="margin-right: 10px;">Type :</label>
-                <select id="measureType" style="margin-right: 20px;">
+                <select id="measureType" onchange="mettreAJourGraphique()" style="margin-right: 20px;">
                     <option value="ECO2">ECO2 (CO2)</option>
                     <option value="TVOC">TVOC</option>
                     <option value="PM 2.5">PM 2.5</option>
@@ -219,7 +219,7 @@
                 </select>
                 
                 <label style="margin-right: 10px;">Période :</label>
-                <select id="timeRange">
+                <select id="timeRange" onchange="mettreAJourGraphique()">
                     <option value="1h">1 heure</option>
                     <option value="6h">6 heures</option>
                     <option value="12h">12 heures</option>
@@ -227,8 +227,6 @@
                     <option value="7d">7 jours</option>
                     <option value="30d">30 jours</option>
                 </select>
-                
-                <button onclick="mettreAJourGraphique()" style="margin-left: 15px;">Mettre à jour</button>
             </div>
             
             <!-- Iframe pour le graphique -->

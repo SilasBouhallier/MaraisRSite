@@ -268,19 +268,26 @@ def add_alarme():
     id_emplacement = data.get('id_emplacement')
     if not nom:
         return jsonify({'success': False, 'error': 'Nom manquant'}), 400
+
     conn = get_db()
     cursor = conn.cursor()
-    cursor.execute("INSERT INTO alarme (nom_alarme) VALUES (%s)", (nom,))
-    alarme_id = cursor.lastrowid
-    if id_emplacement:
-        cursor.execute("""
-            INSERT INTO installe (id_alarme, id_emplacement)
-            VALUES (%s, %s)
-        """, (alarme_id, id_emplacement))
-    conn.commit()
-    cursor.close()
-    conn.close()
-    return jsonify({'success': True})
+    try:
+        # Insérer la nouvelle alarme
+        cursor.execute("INSERT INTO alarme (nom_alarme) VALUES (%s)", (nom,))
+        alarme_id = cursor.lastrowid
+
+        # Si un emplacement est fourni, lier l'alarme à cet emplacement
+        if id_emplacement:
+            cursor.execute("UPDATE emplacement SET id_alarme = %s WHERE id_emplacement = %s", (alarme_id, id_emplacement))
+
+        conn.commit()
+        return jsonify({'success': True, 'id': alarme_id})
+    except Exception as e:
+        conn.rollback()
+        return jsonify({'success': False, 'error': str(e)}), 500
+    finally:
+        cursor.close()
+        conn.close()
 
 @app.route('/api/alarmes/<int:id_alarme>', methods=['PUT'])
 @login_required
@@ -302,7 +309,7 @@ def update_alarme(id_alarme):
 def delete_alarme(id_alarme):
     conn = get_db()
     cursor = conn.cursor()
-    cursor.execute("DELETE FROM installe WHERE id_alarme = %s", (id_alarme,))
+    cursor.execute("UPDATE emplacement SET id_alarme = NULL WHERE id_alarme = %s", (id_alarme,))
     cursor.execute("DELETE FROM alarme WHERE id_alarme = %s", (id_alarme,))
     conn.commit()
     cursor.close()
@@ -338,6 +345,7 @@ GRAFANA_BASE_URL = 'https://marais2026.btssn.ovh/grafana'
 GRAFANA_TOKEN = 'glsa_GcOZsWlJOPJsRxJ82f2LktSHUa8T0hz4_58566e19'
 
 @app.route('/grafana/<path:path>', methods=['GET', 'POST', 'OPTIONS'])
+@login_required
 def grafana_proxy(path):
     target_url = f'{GRAFANA_BASE_URL}/{path}'
     query_string = request.query_string.decode('utf-8')
