@@ -1,9 +1,10 @@
-from flask import Flask, send_from_directory, request, session, redirect, url_for, make_response, render_template, jsonify
+from flask import Flask, send_from_directory, request, session, redirect, url_for, make_response, render_template, jsonify, Response
 import mysql.connector
 import bcrypt
 import logging
-import paho.mqtt.client as mqtt
+import requests
 from functools import wraps
+import time
 
 logging.basicConfig(level=logging.INFO)
 
@@ -329,6 +330,54 @@ def settings():
 @app.route('/api/test')
 def test():
     return {"message": "OK"}
+
+
+# ========== PARTIE GRAFANA code de l'étudiant 3) ==========
+
+GRAFANA_BASE_URL = 'https://marais2026.btssn.ovh/grafana'
+GRAFANA_TOKEN = 'glsa_GcOZsWlJOPJsRxJ82f2LktSHUa8T0hz4_58566e19'
+
+@app.route('/grafana/<path:path>', methods=['GET', 'POST', 'OPTIONS'])
+def grafana_proxy(path):
+    target_url = f'{GRAFANA_BASE_URL}/{path}'
+    query_string = request.query_string.decode('utf-8')
+    if query_string:
+        target_url = f'{target_url}?{query_string}'
+    
+    headers = {
+        'Authorization': f'Bearer {GRAFANA_TOKEN}',
+        'Accept': request.headers.get('Accept', '*/*'),
+        'Content-Type': request.headers.get('Content-Type', ''),
+        'User-Agent': request.headers.get('User-Agent', 'Flask-Proxy/1.0'),
+    }
+    
+    if request.method == 'OPTIONS':
+        response = Response()
+        response.headers['Access-Control-Allow-Origin'] = '*'
+        response.headers['Access-Control-Allow-Methods'] = 'GET, POST, OPTIONS'
+        response.headers['Access-Control-Allow-Headers'] = 'Authorization, Content-Type'
+        return response
+    
+    try:
+        resp = requests.request(
+            method=request.method,
+            url=target_url,
+            headers=headers,
+            data=request.get_data() if request.method == 'POST' else None,
+            timeout=30,
+            allow_redirects=True
+        )
+        
+        excluded_headers = ['content-encoding', 'content-length', 'transfer-encoding', 'connection']
+        headers_out = [(name, value) for name, value in resp.headers.items() 
+                      if name.lower() not in excluded_headers]
+        
+        return Response(resp.content, resp.status_code, headers_out)
+        
+    except requests.RequestException as e:
+        logging.error(f"Proxy error: {e}")
+        return Response(f'Erreur: {str(e)}', status=502)
+
 
 if __name__ == '__main__':
     app.run(host='0.0.0.0', port=5000, debug=True)
