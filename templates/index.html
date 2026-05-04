@@ -262,6 +262,74 @@
     window.onload = mettreAJourGraphique;
 </script>
 
+<!-- ========== DEUXIÈME GRAPHIQUE (panel-4, zone, dates absolues) ========== -->
+<section class="content-grid">
+    <div class="glass-card" style="grid-column: span 12;">
+        <div class="card-header">
+            <h2 class="card-title">🌍 Analyse par zone et période</h2>
+            <p class="card-subtitle">Choisissez une zone, un type de mesure et une plage de dates</p>
+        </div>
+        <div class="card-body">
+            <div style="margin-bottom: 20px;">
+                <label>Zone :</label>
+                <select id="locationZone" onchange="mettreAJourGraphique2()">
+                    <option value="machine">Zone machine</option>
+                    <option value="Peinture">Zone Peinture</option>
+                    <option value="solvant">Zone solvant</option>
+                </select>
+
+                <label style="margin-left: 15px;">Type :</label>
+                <select id="measureType2" onchange="mettreAJourGraphique2()">
+                    <option value="ECO2">ECO2 (CO2)</option>
+                    <option value="TVOC">TVOC</option>
+                    <option value="PM 2.5">PM 2.5</option>
+                    <option value="PM 10">PM 10</option>
+                </select>
+
+                <label style="margin-left: 15px;">Date début :</label>
+                <input type="date" id="fromDate" onchange="mettreAJourGraphique2()" value="2026-04-01">
+
+                <label style="margin-left: 15px;">Date fin :</label>
+                <input type="date" id="toDate" onchange="mettreAJourGraphique2()" value="2026-04-30">
+            </div>
+
+            <iframe id="grafanaIframe2" src="" width="100%" height="450" frameborder="0" style="border-radius: 8px;"></iframe>
+        </div>
+    </div>
+</section>
+
+<script>
+    function mettreAJourGraphique2() {
+        const zone = document.getElementById('locationZone').value;
+        const measureType = document.getElementById('measureType2').value;
+        let fromDate = document.getElementById('fromDate').value;
+        let toDate = document.getElementById('toDate').value;
+
+        if (!fromDate || !toDate) return;
+
+        const fromTime = fromDate + "T00:00:00.000Z";
+        const toTime = toDate + "T23:59:59.999Z";
+
+        const zoneLabels = {
+            'machine': 'Zone machine',
+            'Peinture': 'Zone Peinture',
+            'solvant': 'Zone solvant'
+        };
+        const zoneLabel = zoneLabels[zone];
+
+        const url = `/grafana/d-solo/adwmv2l/graphiques?orgId=1&from=${fromTime}&to=${toTime}&timezone=browser&var-type_mesure=${measureType}&var-id_emplacement=${zone}&var-Variable_id_emplacement=${encodeURIComponent(zoneLabel)}&panelId=panel-4&theme=dark&kiosk`;
+
+        document.getElementById('grafanaIframe2').src = url;
+    }
+
+    // Charge le deuxième graphique au chargement de la page
+    if (document.readyState === 'loading') {
+        document.addEventListener('DOMContentLoaded', mettreAJourGraphique2);
+    } else {
+        mettreAJourGraphique2();
+    }
+</script>
+
             
     <footer class="site-footer">
         <p>Marais'R'Site - Projet BTS CIEL © 2026</p>
