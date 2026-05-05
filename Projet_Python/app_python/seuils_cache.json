@@ -1,0 +1,21 @@
+{
+  "derniere_mise_a_jour": "2026-04-30T15:12:41.744134",
+  "seuils": {
+    "ECO2": {
+      "valeur_alerte_seuil": 1000.0,
+      "valeur_danger_seuil": 2000.0
+    },
+    "PM 2.5": {
+      "valeur_alerte_seuil": 10.0,
+      "valeur_danger_seuil": 25.0
+    },
+    "PM 10": {
+      "valeur_alerte_seuil": 20.0,
+      "valeur_danger_seuil": 50.0
+    },
+    "TVOC": {
+      "valeur_alerte_seuil": 250.0,
+      "valeur_danger_seuil": 1000.0
+    }
+  }
+}

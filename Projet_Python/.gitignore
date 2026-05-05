@@ -1,0 +1,79 @@
+# Environnement
+.env
+*.env
+.env.local
+.env.*.local
+
+# Python
+__pycache__/
+*.py[cod]
+*$py.class
+*.so
+.Python
+env/
+venv/
+ENV/
+build/
+develop-eggs/
+dist/
+downloads/
+eggs/
+.eggs/
+lib/
+lib64/
+parts/
+sdist/
+var/
+wheels/
+*.egg-info/
+.installed.cfg
+*.egg
+
+# Docker
+.dockerignore
+
+# Base de données
+*.sql
+*.sqlite
+*.db
+
+# Certificats et clés privées (sauf pour démo/local)
+# En production, ne jamais versionner les certificats !
+# mosquitto/config/server.key
+# mosquitto/config/ca.key
+
+# Logs
+*.log
+logs/
+log/
+
+# IDE
+.vscode/
+.idea/
+*.swp
+*.swo
+*~
+
+# OS
+.DS_Store
+Thumbs.db
+
+# Backup
+backup/
+*.tar.gz
+*.zip
+
+# Fichiers de cache Python
+app_python/utils/__pycache__/
+app_python/__pycache__/
+
+# Données Docker volumes (si montées localement)
+vol_BDD/
+vol_grafana/
+mosquitto_data/
+mosquitto_log/
+
+# Fichiers de test temporaires
+test_*.py
+simulate_*.sh
+check_*.py
