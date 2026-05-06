@@ -262,7 +262,7 @@
     window.onload = mettreAJourGraphique;
 </script>
 
-<!-- ========== DEUXIÈME GRAPHIQUE de l'étudant 3 (panel-4, zone, dates absolues) ========== -->
+<!-- ========== DEUXIÈME GRAPHIQUE (panel-4, zone, dates absolues) ========== -->
 <section class="content-grid">
     <div class="glass-card" style="grid-column: span 12;">
         <div class="card-header">
@@ -287,10 +287,11 @@
                 </select>
 
                 <label style="margin-left: 15px;">Date début :</label>
-                <input type="date" id="fromDate" onchange="mettreAJourGraphique2()" value="2025-04-01">
+
+                <input type="date" id="fromDate" onchange="mettreAJourGraphique2()" value="2026-04-01">
 
                 <label style="margin-left: 15px;">Date fin :</label>
-                <input type="date" id="toDate" onchange="mettreAJourGraphique2()" value="2025-04-30">
+                <input type="date" id="toDate" onchange="mettreAJourGraphique2()" value="2026-04-30">
             </div>
 
             <iframe id="grafanaIframe2" src="" width="100%" height="450" frameborder="0" style="border-radius: 8px;"></iframe>
@@ -322,7 +323,7 @@
         document.getElementById('grafanaIframe2').src = url;
     }
 
-    // Assure que le deuxième graphique se charge au démarrage
+    // Charge le deuxième graphique au chargement de la page
     if (document.readyState === 'loading') {
         document.addEventListener('DOMContentLoaded', mettreAJourGraphique2);
     } else {
