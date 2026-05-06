@@ -6,6 +6,7 @@ import requests
 import paho.mqtt.publish as publish
 from functools import wraps
 import time
+import os 
 
 logging.basicConfig(level=logging.INFO)
 
@@ -18,10 +19,10 @@ app.config['SESSION_COOKIE_SAMESITE'] = 'Lax'
 app.permanent_session_lifetime = 600
 
 DB_CONFIG = {
-    'host': 'mariadb',
-    'user': 'Marais_R_Site_User',
-    'password': 'Marais_R_Site_User/123',
-    'database': 'Marais_R_Site',
+    'host': os.environ.get('MYSQL_WEB_HOST', 'mariadb'),
+    'user': os.environ.get('MYSQL_WEB_USER', 'web_user'),
+    'password': os.environ.get('MYSQL_WEB_PASSWORD', 'web_password_hyrome49#'),
+    'database': os.environ.get('MYSQL_WEB_DATABASE', 'Marais_R_Site'),
     'port': 3306,
     'charset': 'utf8mb4',
     'collation': 'utf8mb4_general_ci'
@@ -354,7 +355,7 @@ def test():
 # ========== PARTIE GRAFANA code de l'étudiant 3) ==========
 
 GRAFANA_BASE_URL = 'https://marais2026.btssn.ovh/grafana'
-GRAFANA_TOKEN = 'glsa_GcOZsWlJOPJsRxJ82f2LktSHUa8T0hz4_58566e19'
+GRAFANA_TOKEN = os.environ.get('TOKEN_USER_GRAFANA', '')
 
 @app.route('/grafana/<path:path>', methods=['GET', 'POST', 'OPTIONS'])
 @login_required
