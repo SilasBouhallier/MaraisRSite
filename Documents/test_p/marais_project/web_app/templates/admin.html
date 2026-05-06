@@ -1,0 +1,270 @@
+{% extends "base.html" %}
+
+{% block title %}Administration - Système de Surveillance{% endblock %}
+
+{% block page_title %}Administration{% endblock %}
+
+{% block content %}
+<div class="row">
+    <!-- Emplacements -->
+    <div class="col-lg-6">
+        <div class="card shadow mb-4">
+            <div class="card-header py-3 d-flex justify-content-between align-items-center">
+                <h6 class="m-0 font-weight-bold text-primary">
+                    <i class="fas fa-map-marker-alt"></i> Emplacements
+                </h6>
+                <a href="{{ url_for('add_emplacement') }}" class="btn btn-success btn-sm">
+                    <i class="fas fa-plus"></i> Ajouter
+                </a>
+            </div>
+            <div class="card-body">
+                {% if emplacements %}
+                    <div class="table-responsive">
+                        <table class="table table-sm">
+                            <thead>
+                                <tr>
+                                    <th>Nom</th>
+                                    <th>Type</th>
+                                    <th>Sonde</th>
+                                    <th>Actions</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                {% for emp in emplacements %}
+                                <tr>
+                                    <td>
+                                        <a href="{{ url_for('detail_emplacement', id_emplacement=emp.id_emplacement) }}">
+                                            {{ emp.nom_emplacement }}
+                                        </a>
+                                    </td>
+                                    <td>{{ emp.nom_type_emplacement }}</td>
+                                    <td>{{ emp.nom_sonde }}</td>
+                                    <td>
+                                        <div class="btn-group btn-group-sm">
+                                            <a href="{{ url_for('edit_emplacement', id_emplacement=emp.id_emplacement) }}" 
+                                               class="btn btn-outline-warning" title="Modifier">
+                                                <i class="fas fa-edit"></i>
+                                            </a>
+                                            <form method="POST" action="{{ url_for('delete_emplacement', id_emplacement=emp.id_emplacement) }}" 
+                                                  style="display: inline;" 
+                                                  onsubmit="return confirm('Êtes-vous sûr de vouloir supprimer cet emplacement ?');">
+                                                <button type="submit" class="btn btn-outline-danger" title="Supprimer">
+                                                    <i class="fas fa-trash"></i>
+                                                </button>
+                                            </form>
+                                        </div>
+                                    </td>
+                                </tr>
+                                {% endfor %}
+                            </tbody>
+                        </table>
+                    </div>
+                {% else %}
+                    <p class="text-muted">Aucun emplacement configuré</p>
+                {% endif %}
+            </div>
+        </div>
+    </div>
+
+    <!-- Sondes -->
+    <div class="col-lg-6">
+        <div class="card shadow mb-4">
+            <div class="card-header py-3 d-flex justify-content-between align-items-center">
+                <h6 class="m-0 font-weight-bold text-primary">
+                    <i class="fas fa-microchip"></i> Sondes
+                </h6>
+                <a href="{{ url_for('add_sonde') }}" class="btn btn-success btn-sm">
+                    <i class="fas fa-plus"></i> Ajouter
+                </a>
+            </div>
+            <div class="card-body">
+                {% if sondes %}
+                    <div class="table-responsive">
+                        <table class="table table-sm">
+                            <thead>
+                                <tr>
+                                    <th>ID</th>
+                                    <th>Nom</th>
+                                    <th>Actions</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                {% for sonde in sondes %}
+                                <tr>
+                                    <td>{{ sonde.id_sonde }}</td>
+                                    <td>{{ sonde.nom_sonde }}</td>
+                                    <td>
+                                        <div class="btn-group btn-group-sm">
+                                            <a href="{{ url_for('edit_sonde', id_sonde=sonde.id_sonde) }}" 
+                                               class="btn btn-outline-warning" title="Modifier">
+                                                <i class="fas fa-edit"></i>
+                                            </a>
+                                        </div>
+                                    </td>
+                                </tr>
+                                {% endfor %}
+                            </tbody>
+                        </table>
+                    </div>
+                {% else %}
+                    <p class="text-muted">Aucune sonde configurée</p>
+                {% endif %}
+            </div>
+        </div>
+    </div>
+</div>
+
+<div class="row">
+    <!-- Types de mesure -->
+    <div class="col-lg-6">
+        <div class="card shadow mb-4">
+            <div class="card-header py-3">
+                <h6 class="m-0 font-weight-bold text-primary">
+                    <i class="fas fa-chart-bar"></i> Types de mesure
+                </h6>
+            </div>
+            <div class="card-body">
+                {% if types_mesure %}
+                    <div class="table-responsive">
+                        <table class="table table-sm">
+                            <thead>
+                                <tr>
+                                    <th>Type</th>
+                                    <th>Seuil alerte</th>
+                                    <th>Seuil danger</th>
+                                    <th>Unité</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                {% for type in types_mesure %}
+                                <tr>
+                                    <td>{{ type.nom_type_mesure }}</td>
+                                    <td>
+                                        <span class="badge bg-warning">{{ type.valeur_alerte_seuil }}</span>
+                                    </td>
+                                    <td>
+                                        <span class="badge bg-danger">{{ type.valeur_danger_seuil }}</span>
+                                    </td>
+                                    <td>{{ type.unité }}</td>
+                                </tr>
+                                {% endfor %}
+                            </tbody>
+                        </table>
+                    </div>
+                {% else %}
+                    <p class="text-muted">Aucun type de mesure configuré</p>
+                {% endif %}
+            </div>
+        </div>
+    </div>
+
+    <!-- Niveaux d'alerte -->
+    <div class="col-lg-6">
+        <div class="card shadow mb-4">
+            <div class="card-header py-3">
+                <h6 class="m-0 font-weight-bold text-primary">
+                    <i class="fas fa-exclamation-triangle"></i> Niveaux d'alerte
+                </h6>
+            </div>
+            <div class="card-body">
+                {% if alertes %}
+                    <div class="table-responsive">
+                        <table class="table table-sm">
+                            <thead>
+                                <tr>
+                                    <th>ID</th>
+                                    <th>Nom</th>
+                                    <th>Couleur</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                {% for alerte in alertes %}
+                                <tr>
+                                    <td>{{ alerte.id_alerte }}</td>
+                                    <td>{{ alerte.nom_alerte }}</td>
+                                    <td>
+                                        {% if alerte.id_alerte == 1 %}
+                                            <span class="badge bg-success">Normal</span>
+                                        {% elif alerte.id_alerte == 2 %}
+                                            <span class="badge bg-warning">Attention</span>
+                                        {% elif alerte.id_alerte == 3 %}
+                                            <span class="badge bg-danger">Danger</span>
+                                        {% endif %}
+                                    </td>
+                                </tr>
+                                {% endfor %}
+                            </tbody>
+                        </table>
+                    </div>
+                {% else %}
+                    <p class="text-muted">Aucun niveau d'alerte configuré</p>
+                {% endif %}
+            </div>
+        </div>
+    </div>
+</div>
+
+<div class="row">
+    <!-- Types d'emplacement -->
+    <div class="col-lg-6">
+        <div class="card shadow mb-4">
+            <div class="card-header py-3">
+                <h6 class="m-0 font-weight-bold text-primary">
+                    <i class="fas fa-tag"></i> Types d'emplacement
+                </h6>
+            </div>
+            <div class="card-body">
+                {% if types_emplacement %}
+                    <div class="table-responsive">
+                        <table class="table table-sm">
+                            <thead>
+                                <tr>
+                                    <th>ID</th>
+                                    <th>Nom</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                {% for type in types_emplacement %}
+                                <tr>
+                                    <td>{{ type.id_type_emplacement }}</td>
+                                    <td>{{ type.nom_type_emplacement }}</td>
+                                </tr>
+                                {% endfor %}
+                            </tbody>
+                        </table>
+                    </div>
+                {% else %}
+                    <p class="text-muted">Aucun type d'emplacement configuré</p>
+                {% endif %}
+            </div>
+        </div>
+    </div>
+
+    <!-- Actions système -->
+    <div class="col-lg-6">
+        <div class="card shadow mb-4">
+            <div class="card-header py-3">
+                <h6 class="m-0 font-weight-bold text-primary">
+                    <i class="fas fa-tools"></i> Actions système
+                </h6>
+            </div>
+            <div class="card-body">
+                <div class="d-grid gap-2">
+                    <a href="{{ url_for('api_export_mesures') }}" class="btn btn-info">
+                        <i class="fas fa-download"></i> Exporter toutes les mesures
+                    </a>
+                    <a href="{{ url_for('api_statistiques') }}" class="btn btn-secondary">
+                        <i class="fas fa-chart-bar"></i> Voir les statistiques
+                    </a>
+                    <button class="btn btn-warning" onclick="alert('Fonctionnalité à implémenter')">
+                        <i class="fas fa-database"></i> Nettoyer les anciennes mesures
+                    </button>
+                    <button class="btn btn-success" onclick="alert('Fonctionnalité à implémenter')">
+                        <i class="fas fa-sync"></i> Synchroniser les sondes
+                    </button>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

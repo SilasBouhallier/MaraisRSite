@@ -1,0 +1,98 @@
+{% extends "base.html" %}
+
+{% block title %}Modifier Emplacement #{{ emplacement.id_emplacement }} - Système de Surveillance{% endblock %}
+
+{% block content %}
+<div class="container-fluid">
+    <div class="row">
+        <nav class="col-md-3 col-lg-2 d-md-block sidebar collapse">
+            <div class="position-sticky pt-3">
+                <ul class="nav flex-column">
+                    <li class="nav-item">
+                        <a class="nav-link" href="{{ url_for('index') }}">
+                            <i class="fas fa-home"></i> Accueil
+                        </a>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link" href="{{ url_for('mesures') }}">
+                            <i class="fas fa-chart-line"></i> Mesures
+                        </a>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link active" href="{{ url_for('admin') }}">
+                            <i class="fas fa-cogs"></i> Administration
+                        </a>
+                    </li>
+                </ul>
+            </div>
+        </nav>
+
+        <main class="col-md-9 ms-sm-auto col-lg-10 px-md-4 main-content">
+            <div class="d-flex justify-content-between flex-wrap flex-md-nowrap align-items-center pt-3 pb-2 mb-3 border-bottom">
+                <h1 class="h2">Modifier Emplacement #{{ emplacement.id_emplacement }}</h1>
+            </div>
+
+            {% with messages = get_flashed_messages(with_categories=true) %}
+                {% if messages %}
+                    {% for category, message in messages %}
+                        <div class="alert alert-{{ 'danger' if category == 'error' else category }}">
+                            {{ message }}
+                        </div>
+                    {% endfor %}
+                {% endif %}
+            {% endwith %}
+
+            <div class="card">
+                <div class="card-header">
+                    <h5 class="card-title mb-0">Formulaire de modification</h5>
+                </div>
+                <div class="card-body">
+                    <form method="POST">
+                        <div class="mb-3">
+                            <label for="nom" class="form-label">Nom</label>
+                            <input type="text" class="form-control" id="nom" name="nom" 
+                                   value="{{ emplacement.nom_emplacement }}" required>
+                        </div>
+                        
+                        <div class="row">
+                            <div class="col-md-6">
+                                <div class="mb-3">
+                                    <label for="id_type_emplacement" class="form-label">Type d'emplacement</label>
+                                    <select class="form-select" id="id_type_emplacement" name="id_type_emplacement">
+                                        {% for type in types_emplacement %}
+                                        <option value="{{ type.id_type_emplacement }}" {% if type.id_type_emplacement == emplacement.id_type_emplacement %}selected{% endif %}>
+                                            {{ type.nom_type_emplacement }}
+                                        </option>
+                                        {% endfor %}
+                                    </select>
+                                </div>
+                            </div>
+                            <div class="col-md-6">
+                                <div class="mb-3">
+                                    <label for="id_sonde" class="form-label">Sonde</label>
+                                    <select class="form-select" id="id_sonde" name="id_sonde">
+                                        {% for sonde in sondes %}
+                                        <option value="{{ sonde.id_sonde }}" {% if sonde.id_sonde == emplacement.id_sonde %}selected{% endif %}>
+                                            {{ sonde.nom_sonde }}
+                                        </option>
+                                        {% endfor %}
+                                    </select>
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="d-flex justify-content-between">
+                            <a href="{{ url_for('detail_emplacement', id_emplacement=emplacement.id_emplacement) }}" class="btn btn-secondary">
+                                <i class="fas fa-arrow-left"></i> Annuler
+                            </a>
+                            <button type="submit" class="btn btn-primary">
+                                <i class="fas fa-save"></i> Enregistrer
+                            </button>
+                        </div>
+                    </form>
+                </div>
+            </div>
+        </main>
+    </div>
+</div>
+{% endblock %}
