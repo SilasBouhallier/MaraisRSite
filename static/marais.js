@@ -144,6 +144,18 @@ function testAlarme(id) {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ id_alarme: id })
+    })
+    .then(response => response.json())
+    .then(data => {
+        if (data.success) {
+            alert(`✅ Commande envoyée pour l’alarme ${id}`);
+        } else {
+            alert(`❌ Erreur : ${data.error || "Échec de l'envoi"}`);
+        }
+    })
+    .catch(error => {
+        console.error('Erreur réseau :', error);
+        alert('❌ Impossible de contacter le serveur');
     });
 }
 

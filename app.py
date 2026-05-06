@@ -3,6 +3,7 @@ import mysql.connector
 import bcrypt
 import logging
 import requests
+import paho.mqtt.publish as publish
 from functools import wraps
 import time
 
@@ -321,12 +322,23 @@ def delete_alarme(id_alarme):
 def test_alarme():
     data = request.get_json()
     id_alarme = data.get('id_alarme')
-    
-    # Envoi de la commande via MQTT
-    client = mqtt.Client()
-    client.connect("mosquitto", 1883, 60)
-    client.publish("gyrophare/commande", f"ALARME_{id_alarme}_TEST")
-    client.disconnect()
+    if not id_alarme:
+        return jsonify({'success': False, 'error': 'ID manquant'}), 400
+    try:
+        publish.single(
+            topic="marais/alertes/",   # topic pris dans le code de l'étudiant 2
+            payload=f"TEST_{id_alarme}",
+            hostname="marais2026.btssn.ovh",
+            port=8883,
+            tls={},   # TLS activé
+            auth={
+                'username': os.environ.get('MQTT_USER'),
+                'password': os.environ.get('MQTT_PASSWORD')
+            }
+        )
+        return jsonify({'success': True})
+    except Exception as e:
+        return jsonify({'success': False, 'error': str(e)}), 500
 
 # ========== AUTRES ==========
 @app.route('/settings.html')
