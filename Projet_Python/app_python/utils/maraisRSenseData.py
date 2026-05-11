@@ -56,4 +56,9 @@ class MaraisRSenseData:
         self.client.connect(self.broker, self.port, 60)
         self.client.loop_forever()
 
+    def stop(self):
+        """Arrête proprement le client MQTT."""
+        self.client.loop_stop()
+        self.client.disconnect()
+
 
