@@ -54,7 +54,9 @@ def login_required(f):
 
 
 def publier_seuils():
-    """Récupère tous les seuils et les publie sur marais/sondes/seuils"""
+    print("[MQTT] Tentative publication seuils...")
+    print(f"[MQTT] USER: {os.environ.get('MQTT_USER')}")
+    print(f"[MQTT] PASSWORD: {os.environ.get('MQTT_PASSWORD')}")
     conn = get_db()
     cursor = conn.cursor(dictionary=True)
     cursor.execute("SELECT nom_type_mesure, valeur_alerte_seuil, valeur_danger_seuil FROM type_info_mesure")
@@ -66,6 +68,8 @@ def publier_seuils():
         'valeur_alerte_seuil': float(s['valeur_alerte_seuil']),
         'valeur_danger_seuil': float(s['valeur_danger_seuil'])
     } for s in seuils}
+    
+    print(f"[MQTT] Payload: {payload}")
     
     try:
         publish.single(
@@ -81,6 +85,7 @@ def publier_seuils():
             qos=1,
             retain=True
         )
+        print("[MQTT] Publication réussie ✅")
     except Exception as e:
         print(f"[MQTT] Erreur publication seuils: {e}")
 
@@ -179,7 +184,6 @@ def update_seuil(id_type_mesure):
     danger = data.get('danger')
     if alerte is None or danger is None:
         return jsonify({'error': 'Valeurs manquantes'}), 400
-
     conn = get_db()
     cursor = conn.cursor()
     cursor.execute("""
@@ -190,26 +194,9 @@ def update_seuil(id_type_mesure):
     conn.commit()
     cursor.close()
     conn.close()
-
-    # --- Publication MQTT du seuil modifié ---
-    try:
-        payload = f"{alerte},{danger}"
-        publish.single(
-            topic=f"marais/seuils/{id_type_mesure}",
-            payload=payload,
-            hostname=os.environ.get('MQTT_BROKER', 'marais2026.btssn.ovh'),
-            port=int(os.environ.get('MQTT_PORT', 8883)),
-            tls={},
-            auth={
-                'username': os.environ.get('MQTT_USER'),
-                'password': os.environ.get('MQTT_PASSWORD')
-            }
-        )
-        print(f"Seuil publié sur marais/seuils/{id_type_mesure}: {payload}")
-    except Exception as e:
-        print(f"Erreur publication seuil : {e}")
-
+    publier_seuils()
     return jsonify({'success': True})
+
 
 @app.route('/api/seuils/all', methods=['POST'])
 @login_required
@@ -218,7 +205,6 @@ def update_all_seuils():
     seuils = data.get('seuils', [])
     if not seuils:
         return jsonify({'error': 'Aucune donnée'}), 400
-
     conn = get_db()
     cursor = conn.cursor()
     for s in seuils:
@@ -227,28 +213,10 @@ def update_all_seuils():
             SET valeur_alerte_seuil = %s, valeur_danger_seuil = %s
             WHERE id_type_mesure = %s
         """, (s['alerte'], s['danger'], s['id']))
-
-        # Publication MQTT pour chaque seuil modifié
-        try:
-            payload = f"{s['alerte']},{s['danger']}"
-            publish.single(
-                topic=f"marais/seuils/{s['id']}",
-                payload=payload,
-                hostname=os.environ.get('MQTT_BROKER', 'marais2026.btssn.ovh'),
-                port=int(os.environ.get('MQTT_PORT', 8883)),
-                tls={},
-                auth={
-                    'username': os.environ.get('MQTT_USER'),
-                    'password': os.environ.get('MQTT_PASSWORD')
-                }
-            )
-            print(f"Seuil publié sur marais/seuils/{s['id']}: {payload}")
-        except Exception as e:
-            print(f"Erreur publication seuil : {e}")
-
     conn.commit()
     cursor.close()
     conn.close()
+    publier_seuils()
     return jsonify({'success': True})
 
 # ========== SONDES ==========
