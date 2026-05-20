@@ -45,17 +45,27 @@
 
             <section class="content-grid">
                 <div class="glass-card" style="grid-column: span 12;">
-                    <div class="card-header"><h2 class="card-title">Liste des sondes installées</h2><p class="card-subtitle">Capteurs connectés dans l'atelier</p></div>
+                    <div class="card-header">
+                        <h2 class="card-title">Liste des sondes installées</h2>
+                        <p class="card-subtitle">Capteurs connectés dans l'atelier</p>
+                    </div>
                     <div class="table-wrapper">
                         <table class="data-table">
                             <thead>
-                                <tr><th>ID</th><th>Nom</th><th>Localisation</th><th>Actions</th></tr>
+                                <tr>
+                                    <th>ID</th>
+                                    <th>Nom</th>
+                                    <th>Localisation principale</th>
+                                    <th>Zone exacte</th>
+                                    <th>Actions</th>
+                                </tr>
                             </thead>
                             <tbody>
                                 {% for sonde in sondes %}
                                 <tr>
                                     <td>{{ sonde.id_sonde }}</td>
                                     <td>{{ sonde.nom_sonde }}</td>
+                                    <td>{{ sonde.localisation_principale if sonde.localisation_principale else 'Non défini' }}</td>
                                     <td>{{ sonde.nom_emplacement if sonde.nom_emplacement else 'Non défini' }}</td>
                                     <td>
                                         <button class="card-btn" style="margin-right: 5px;" onclick="editSonde({{ sonde.id_sonde }})">✏️</button>
