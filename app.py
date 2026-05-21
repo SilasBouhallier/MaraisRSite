@@ -23,7 +23,7 @@ app.permanent_session_lifetime = 600
 DB_CONFIG = {
     'host': os.environ.get('MYSQL_WEB_HOST', 'mariadb'),
     'user': os.environ.get('MYSQL_WEB_USER', 'web_user'),
-    'password': os.environ.get('MYSQL_WEB_PASSWORD', 'web_password_hyrome49#'),
+    'password': os.environ.get('MYSQL_PASSWORD'),
     'database': os.environ.get('MYSQL_WEB_DATABASE', 'Marais_R_Site'),
     'port': 3306,
     'charset': 'utf8mb4',
