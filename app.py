@@ -225,8 +225,9 @@ def update_all_seuils():
 def sondes():
     conn = get_db()
     cursor = conn.cursor(dictionary=True)
+    # Modification : ajout de e.localisation_principale
     cursor.execute("""
-        SELECT s.id_sonde, s.nom_sonde, e.nom_emplacement
+        SELECT s.id_sonde, s.nom_sonde, e.localisation_principale, e.nom_emplacement
         FROM sonde s
         LEFT JOIN emplacement e ON s.id_sonde = e.id_sonde
     """)
@@ -264,15 +265,69 @@ def add_sonde():
 def update_sonde(id_sonde):
     data = request.get_json()
     nom = data.get('nom')
-    if not nom:
-        return jsonify({'success': False, 'error': 'Nom manquant'}), 400
+    localisation_principale = data.get('localisation_principale')
+    nom_emplacement = data.get('nom_emplacement')
+    
     conn = get_db()
     cursor = conn.cursor()
-    cursor.execute("UPDATE sonde SET nom_sonde = %s WHERE id_sonde = %s", (nom, id_sonde))
-    conn.commit()
+    try:
+        # Mettre à jour le nom de la sonde si fourni
+        if nom:
+            cursor.execute("UPDATE sonde SET nom_sonde = %s WHERE id_sonde = %s", (nom, id_sonde))
+        
+        # Vérifier si un enregistrement emplacement existe pour cette sonde
+        cursor.execute("SELECT id_emplacement FROM emplacement WHERE id_sonde = %s", (id_sonde,))
+        emplacement = cursor.fetchone()
+        
+        if emplacement:
+            # Construire dynamiquement la requête UPDATE
+            updates = []
+            params = []
+            if localisation_principale is not None:
+                updates.append("localisation_principale = %s")
+                params.append(localisation_principale)
+            if nom_emplacement is not None:
+                updates.append("nom_emplacement = %s")
+                params.append(nom_emplacement)
+            if updates:
+                sql = f"UPDATE emplacement SET {', '.join(updates)} WHERE id_sonde = %s"
+                params.append(id_sonde)
+                cursor.execute(sql, params)
+        else:
+            # Si pas d'emplacement (cas rare), on en crée un
+            cursor.execute("""
+                INSERT INTO emplacement (id_sonde, localisation_principale, nom_emplacement)
+                VALUES (%s, %s, %s)
+            """, (id_sonde, localisation_principale, nom_emplacement))
+        
+        conn.commit()
+        return jsonify({'success': True})
+    except Exception as e:
+        conn.rollback()
+        return jsonify({'success': False, 'error': str(e)}), 500
+    finally:
+        cursor.close()
+        conn.close()
+
+
+@app.route('/api/sondes/<int:id_sonde>', methods=['GET'])
+@login_required
+def get_sonde(id_sonde):
+    conn = get_db()
+    cursor = conn.cursor(dictionary=True)
+    cursor.execute("""
+        SELECT s.id_sonde, s.nom_sonde, e.localisation_principale, e.nom_emplacement
+        FROM sonde s
+        LEFT JOIN emplacement e ON s.id_sonde = e.id_sonde
+        WHERE s.id_sonde = %s
+    """, (id_sonde,))
+    sonde = cursor.fetchone()
     cursor.close()
     conn.close()
-    return jsonify({'success': True})
+    if sonde:
+        return jsonify({'success': True, 'sonde': sonde})
+    else:
+        return jsonify({'success': False, 'error': 'Sonde non trouvée'}), 404
 
 @app.route('/api/sondes/<int:id_sonde>', methods=['DELETE'])
 @login_required
@@ -295,7 +350,7 @@ def alarmes():
     cursor.execute("""
         SELECT a.id_alarme, a.nom_alarme, e.nom_emplacement
         FROM alarme a
-        LEFT JOIN emplacement e ON a.id_alarme = e.id_alarme
+        LEFT JOIN emplacement e ON a.id_emplacement = e.id_emplacement
     """)
     alarmes = cursor.fetchall()
     cursor.execute("SELECT id_emplacement, nom_emplacement FROM emplacement")
@@ -309,21 +364,24 @@ def alarmes():
 def add_alarme():
     data = request.get_json()
     nom = data.get('nom')
-    id_emplacement = data.get('id_emplacement')
+    id_emplacement = data.get('id_emplacement')  # optionnel
     if not nom:
         return jsonify({'success': False, 'error': 'Nom manquant'}), 400
 
     conn = get_db()
     cursor = conn.cursor()
     try:
-        # Insérer la nouvelle alarme
-        cursor.execute("INSERT INTO alarme (nom_alarme) VALUES (%s)", (nom,))
-        alarme_id = cursor.lastrowid
-
-        # Si un emplacement est fourni, lier l'alarme à cet emplacement
         if id_emplacement:
-            cursor.execute("UPDATE emplacement SET id_alarme = %s WHERE id_emplacement = %s", (alarme_id, id_emplacement))
-
+            cursor.execute(
+                "INSERT INTO alarme (nom_alarme, id_emplacement) VALUES (%s, %s)",
+                (nom, id_emplacement)
+            )
+        else:
+            cursor.execute(
+                "INSERT INTO alarme (nom_alarme) VALUES (%s)",
+                (nom,)
+            )
+        alarme_id = cursor.lastrowid
         conn.commit()
         return jsonify({'success': True, 'id': alarme_id})
     except Exception as e:

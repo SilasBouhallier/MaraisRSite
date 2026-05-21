@@ -38,25 +38,8 @@ function addSonde() {
     });
 }
 
-function editSonde(id) {
-    const nouveauNom = prompt("Nouveau nom de la sonde :");
-    if (!nouveauNom) return;
-    fetch(`/api/sondes/${id}`, {
-        method: 'PUT',
-        headers: { 'Content-Type': 'application/json' },
-        credentials: 'same-origin',
-        body: JSON.stringify({ nom: nouveauNom })
-    })
-    .then(response => response.json())
-    .then(data => {
-        if (data.success) {
-            alert('Sonde modifiée');
-            location.reload();
-        } else {
-            alert('Erreur');
-        }
-    });
-}
+// Ancienne fonction editSonde (remplacée par openEditSondeModal, on la garde pour compatibilité mais elle ne sera plus utilisée)
+// function editSonde(id) { ... }  // on peut la supprimer ou la commenter
 
 function deleteSonde(id) {
     if (confirm('Supprimer cette sonde ?')) {
@@ -74,6 +57,48 @@ function deleteSonde(id) {
             }
         });
     }
+}
+
+// NOUVELLES FONCTIONS POUR L'ÉDITION COMPLÈTE DES SONDES
+function openEditSondeModal(id) {
+    fetch(`/api/sondes/${id}`)
+        .then(response => response.json())
+        .then(data => {
+            if (data.success) {
+                document.getElementById('editSondeId').value = data.sonde.id_sonde;
+                document.getElementById('editSondeNom').value = data.sonde.nom_sonde || '';
+                document.getElementById('editSondeLocalisation').value = data.sonde.localisation_principale || '';
+                document.getElementById('editSondeZone').value = data.sonde.nom_emplacement || '';
+                openModal('editSondeModal');
+            } else {
+                alert('Erreur : ' + (data.error || 'Impossible de charger la sonde'));
+            }
+        })
+        .catch(err => alert('Erreur réseau lors du chargement de la sonde'));
+}
+
+function submitEditSonde() {
+    const id = document.getElementById('editSondeId').value;
+    const nom = document.getElementById('editSondeNom').value;
+    const localisation_principale = document.getElementById('editSondeLocalisation').value;
+    const nom_emplacement = document.getElementById('editSondeZone').value;
+
+    fetch(`/api/sondes/${id}`, {
+        method: 'PUT',
+        headers: { 'Content-Type': 'application/json' },
+        credentials: 'same-origin',
+        body: JSON.stringify({ nom, localisation_principale, nom_emplacement })
+    })
+    .then(response => response.json())
+    .then(data => {
+        if (data.success) {
+            alert('Sonde modifiée avec succès');
+            location.reload();
+        } else {
+            alert('Erreur : ' + (data.error || 'Modification échouée'));
+        }
+    })
+    .catch(err => alert('Erreur réseau lors de la modification'));
 }
 
 // === ALARMES ===

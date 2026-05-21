@@ -68,7 +68,7 @@
                                     <td>{{ sonde.localisation_principale if sonde.localisation_principale else 'Non défini' }}</td>
                                     <td>{{ sonde.nom_emplacement if sonde.nom_emplacement else 'Non défini' }}</td>
                                     <td>
-                                        <button class="card-btn" style="margin-right: 5px;" onclick="editSonde({{ sonde.id_sonde }})">✏️</button>
+                                        <button class="card-btn" style="margin-right: 5px;" onclick="openEditSondeModal({{ sonde.id_sonde }})">✏️</button>
                                         <button class="card-btn" onclick="deleteSonde({{ sonde.id_sonde }})">🗑️</button>
                                     </td>
                                 </tr>
@@ -88,6 +88,35 @@
                         <div class="form-group"><label>Localisation principale</label><select id="sondeLocalisation" class="form-input"><option value="">Sélectionner</option><option value="Atelier bois">Atelier bois</option><option value="Zone peinture">Zone peinture</option><option value="Zone collage">Zone collage</option></select></div>
                         <div class="form-group"><label>Machine / Zone exacte</label><input type="text" id="sondeMachine" class="form-input" placeholder="Ex: Scie circulaire, Cabine peinture, ..."></div>
                         <div style="display: flex; gap: 10px; justify-content: flex-end;"><button class="card-btn" onclick="closeModal('sondeModal')">Annuler</button><button class="btn btn-primary" onclick="addSonde()">Ajouter</button></div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- MODAL ÉDITION SONDE -->
+            <div id="editSondeModal" class="modal" style="display: none; position: fixed; top:0; left:0; width:100%; height:100%; background:rgba(0,0,0,0.5); align-items:center; justify-content:center; z-index:1000;">
+                <div class="glass-card" style="width:500px; max-width:90%;">
+                    <div class="card-header" style="display:flex; justify-content:space-between;">
+                        <h2>Modifier la sonde</h2>
+                        <button onclick="closeModal('editSondeModal')" style="background:none; border:none; font-size:24px;">&times;</button>
+                    </div>
+                    <div style="padding:20px;">
+                        <input type="hidden" id="editSondeId">
+                        <div class="form-group">
+                            <label>Nom de la sonde</label>
+                            <input type="text" id="editSondeNom" class="form-input">
+                        </div>
+                        <div class="form-group">
+                            <label>Localisation principale</label>
+                            <input type="text" id="editSondeLocalisation" class="form-input" placeholder="Ex: Atelier bois">
+                        </div>
+                        <div class="form-group">
+                            <label>Zone exacte (machine / salle)</label>
+                            <input type="text" id="editSondeZone" class="form-input" placeholder="Ex: Scie circulaire">
+                        </div>
+                        <div style="display:flex; gap:10px; justify-content:flex-end;">
+                            <button class="card-btn" onclick="closeModal('editSondeModal')">Annuler</button>
+                            <button class="btn btn-primary" onclick="submitEditSonde()">Enregistrer</button>
+                        </div>
                     </div>
                 </div>
             </div>
