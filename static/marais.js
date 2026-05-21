@@ -127,13 +127,42 @@ function addAlarme() {
 }
 
 function editAlarme(id) {
-    const nouveauNom = prompt("Nouveau nom de l'alarme :");
-    if (!nouveauNom) return;
+    // Récupérer les données actuelles de l'alarme (nom et emplacement)
+    fetch(`/api/alarmes/${id}`)
+        .then(response => response.json())
+        .then(data => {
+            if (data.success) {
+                document.getElementById('editAlarmeId').value = data.alarme.id_alarme;
+                document.getElementById('editAlarmeNom').value = data.alarme.nom_alarme || '';
+                // Sélectionner l'emplacement actuel dans le select
+                const select = document.getElementById('editAlarmeEmplacement');
+                select.value = data.alarme.id_emplacement || '';
+                openModal('editAlarmeModal');
+            } else {
+                alert('Erreur : ' + (data.error || 'Impossible de charger l\'alarme'));
+            }
+        })
+        .catch(err => alert('Erreur réseau lors du chargement de l\'alarme'));
+}
+
+function submitEditAlarme() {
+    const id = document.getElementById('editAlarmeId').value;
+    const nom = document.getElementById('editAlarmeNom').value;
+    const id_emplacement = document.getElementById('editAlarmeEmplacement').value;
+
+    if (!nom) {
+        alert('Le nom de l\'alarme est requis');
+        return;
+    }
+
     fetch(`/api/alarmes/${id}`, {
         method: 'PUT',
         headers: { 'Content-Type': 'application/json' },
         credentials: 'same-origin',
-        body: JSON.stringify({ nom: nouveauNom })
+        body: JSON.stringify({ 
+            nom: nom,
+            id_emplacement: id_emplacement || null
+        })
     })
     .then(response => response.json())
     .then(data => {
@@ -141,9 +170,10 @@ function editAlarme(id) {
             alert('Alarme modifiée');
             location.reload();
         } else {
-            alert('Erreur');
+            alert('Erreur : ' + (data.error || 'Modification échouée'));
         }
-    });
+    })
+    .catch(err => alert('Erreur réseau lors de la modification'));
 }
 
 function deleteAlarme(id) {

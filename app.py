@@ -341,6 +341,38 @@ def delete_sonde(id_sonde):
     conn.close()
     return jsonify({'success': True})
 
+def declencher_alarme_mqtt(numero_gyrophare):
+    """Déclenche un gyrophare via MQTT JSON-RPC"""
+    try:
+        topic = f"marais/alarme/gyrophare_{numero_gyrophare}/rpc"
+        payload = {
+            "id": 1,
+            "src": f"marais/alarme/gyrophare_{numero_gyrophare}",
+            "method": "Switch.Set",
+            "params": {
+                "id": 0,
+                "on": True
+            }
+        }
+        publish.single(
+            topic=topic,
+            payload=json.dumps(payload, separators=(',', ':')),
+            hostname="marais2026.btssn.ovh",
+            port=8883,
+            auth={
+                'username': os.environ.get('MQTT_USER'),
+                'password': os.environ.get('MQTT_PASSWORD')
+            },
+            tls={'cert_reqs': ssl.CERT_NONE},
+            qos=1,
+            retain=False
+        )
+        return True
+    except Exception as e:
+        print(f"[MQTT] Erreur alarme: {e}")
+        return False
+
+
 # ========== ALARMES ==========
 @app.route('/alarmes.html')
 @login_required
@@ -364,23 +396,16 @@ def alarmes():
 def add_alarme():
     data = request.get_json()
     nom = data.get('nom')
-    id_emplacement = data.get('id_emplacement')  # optionnel
+    id_emplacement = data.get('id_emplacement')
     if not nom:
         return jsonify({'success': False, 'error': 'Nom manquant'}), 400
-
     conn = get_db()
     cursor = conn.cursor()
     try:
-        if id_emplacement:
-            cursor.execute(
-                "INSERT INTO alarme (nom_alarme, id_emplacement) VALUES (%s, %s)",
-                (nom, id_emplacement)
-            )
-        else:
-            cursor.execute(
-                "INSERT INTO alarme (nom_alarme) VALUES (%s)",
-                (nom,)
-            )
+        cursor.execute("""
+            INSERT INTO alarme (nom_alarme, id_emplacement)
+            VALUES (%s, %s)
+        """, (nom, id_emplacement if id_emplacement else None))
         alarme_id = cursor.lastrowid
         conn.commit()
         return jsonify({'success': True, 'id': alarme_id})
@@ -396,22 +421,49 @@ def add_alarme():
 def update_alarme(id_alarme):
     data = request.get_json()
     nom = data.get('nom')
+    id_emplacement = data.get('id_emplacement')
     if not nom:
         return jsonify({'success': False, 'error': 'Nom manquant'}), 400
     conn = get_db()
     cursor = conn.cursor()
-    cursor.execute("UPDATE alarme SET nom_alarme = %s WHERE id_alarme = %s", (nom, id_alarme))
-    conn.commit()
+    try:
+        cursor.execute("""
+            UPDATE alarme 
+            SET nom_alarme = %s, id_emplacement = %s
+            WHERE id_alarme = %s
+        """, (nom, id_emplacement if id_emplacement else None, id_alarme))
+        conn.commit()
+        return jsonify({'success': True})
+    except Exception as e:
+        conn.rollback()
+        return jsonify({'success': False, 'error': str(e)}), 500
+    finally:
+        cursor.close()
+        conn.close()
+
+@app.route('/api/alarmes/<int:id_alarme>', methods=['GET'])
+@login_required
+def get_alarme(id_alarme):
+    conn = get_db()
+    cursor = conn.cursor(dictionary=True)
+    cursor.execute("""
+        SELECT id_alarme, nom_alarme, id_emplacement
+        FROM alarme
+        WHERE id_alarme = %s
+    """, (id_alarme,))
+    alarme = cursor.fetchone()
     cursor.close()
     conn.close()
-    return jsonify({'success': True})
+    if alarme:
+        return jsonify({'success': True, 'alarme': alarme})
+    else:
+        return jsonify({'success': False, 'error': 'Alarme non trouvée'}), 404
 
 @app.route('/api/alarmes/<int:id_alarme>', methods=['DELETE'])
 @login_required
 def delete_alarme(id_alarme):
     conn = get_db()
     cursor = conn.cursor()
-    cursor.execute("UPDATE emplacement SET id_alarme = NULL WHERE id_alarme = %s", (id_alarme,))
     cursor.execute("DELETE FROM alarme WHERE id_alarme = %s", (id_alarme,))
     conn.commit()
     cursor.close()
@@ -425,21 +477,11 @@ def test_alarme():
     id_alarme = data.get('id_alarme')
     if not id_alarme:
         return jsonify({'success': False, 'error': 'ID manquant'}), 400
-    try:
-        publish.single(
-            topic="marais/alertes/",   # topic pris dans le code de l'étudiant 2
-            payload=f"TEST_{id_alarme}",
-            hostname="marais2026.btssn.ovh",
-            port=8883,
-            tls={},   # TLS activé
-            auth={
-                'username': os.environ.get('MQTT_USER'),
-                'password': os.environ.get('MQTT_PASSWORD')
-            }
-        )
+    succes = declencher_alarme_mqtt(id_alarme)
+    if succes:
         return jsonify({'success': True})
-    except Exception as e:
-        return jsonify({'success': False, 'error': str(e)}), 500
+    else:
+        return jsonify({'success': False, 'error': 'Erreur MQTT'}), 500
 
 # ========== AUTRES ==========
 @app.route('/settings.html')
