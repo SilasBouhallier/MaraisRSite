@@ -16,7 +16,7 @@ app = Flask(__name__)
 app.secret_key = 'une_cle_secrete_tres_longue_pour_la_session_2026'
 app.config['SESSION_COOKIE_NAME'] = 'marais_session'
 app.config['SESSION_COOKIE_HTTPONLY'] = True
-app.config['SESSION_COOKIE_SECURE'] = False
+app.config['SESSION_COOKIE_SECURE'] = True
 app.config['SESSION_COOKIE_SAMESITE'] = 'Lax'
 app.permanent_session_lifetime = 600
 
