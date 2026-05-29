@@ -236,6 +236,40 @@ function saveSeuil(id) {
     .catch(error => console.error('Erreur:', error));
 }
 
+function saveAllSeuils() {
+    const rows = document.querySelectorAll('table tbody tr');
+    const seuilsData = [];
+    rows.forEach(row => {
+        const idButton = row.querySelector('button[onclick^="saveSeuil"]');
+        if (!idButton) return;
+        const onclick = idButton.getAttribute('onclick');
+        const match = onclick.match(/saveSeuil\((\d+)\)/);
+        if (!match) return;
+        const id = match[1];
+        const inputs = row.querySelectorAll('input[type="number"]');
+        if (inputs.length < 2) return;
+        // Utilise le même ordre que saveSeuil
+        seuilsData.push({ id, alerte: inputs[0].value, danger: inputs[1].value });
+    });
+    if (seuilsData.length === 0) return alert('Aucun seuil à enregistrer');
+    console.log('Données envoyées:', JSON.stringify(seuilsData));
+    fetch('/api/seuils/all', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        credentials: 'same-origin',
+        body: JSON.stringify({ seuils: seuilsData })
+    })
+    .then(response => response.json())
+    .then(data => {
+        if (data.success) {
+            alert('Tous les seuils ont été enregistrés');
+        } else {
+            alert('Erreur lors de l’enregistrement');
+        }
+    })
+    .catch(error => console.error('Erreur:', error));
+}
+
 // === FERMETURE MODAL PAR CLIC EXTÉRIEUR ===
 window.addEventListener('click', function(event) {
     if (event.target.classList?.contains('modal')) event.target.style.display = 'none';

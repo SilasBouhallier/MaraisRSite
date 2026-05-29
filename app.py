@@ -208,6 +208,7 @@ def update_all_seuils():
     conn = get_db()
     cursor = conn.cursor()
     for s in seuils:
+        print(f"id: {s['id']}, alerte reçue: {s['alerte']}, danger reçu: {s['danger']}")
         cursor.execute("""
             UPDATE type_info_mesure
             SET valeur_alerte_seuil = %s, valeur_danger_seuil = %s
