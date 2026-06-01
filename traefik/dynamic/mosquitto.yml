@@ -1,0 +1,16 @@
+tcp:
+  routers:
+    mqtts:
+      rule: "HostSNI(`*`)"
+      entryPoints:
+        - mqtts
+      service: mosquitto-mqtts
+      priority: 100
+      tls:
+        passthrough: true
+
+  services:
+    mosquitto-mqtts:
+      loadBalancer:
+        servers:
+          - address: "mosquitto:8883"

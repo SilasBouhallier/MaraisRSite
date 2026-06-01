@@ -1,0 +1,16 @@
+http:
+  routers:
+    web-app:
+      rule: "Host(`marais2026.btssn.ovh`) && PathPrefix(`/`)"
+      entryPoints:
+        - websecure
+      service: web-app-service
+      tls:
+        certResolver: letsencrypt
+      priority: 1
+
+  services:
+    web-app-service:
+      loadBalancer:
+        servers:
+          - url: "http://web_app:5000"
