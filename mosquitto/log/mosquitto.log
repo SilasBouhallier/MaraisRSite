@@ -1,0 +1,39 @@
+1775662280: mosquitto version 2.0.22 starting
+1775662280: Config loaded from /mosquitto/config/mosquitto.conf.
+1775662280: Warning: File /mosquitto/config/passwd has world readable permissions. Future versions will refuse to load this file.
+To fix this, use `chmod 0700 /mosquitto/config/passwd`.
+1775662280: Error: Unable to decode password salt for user marais2026, removing entry.
+1775662280: Opening ipv4 listen socket on port 1883.
+1775662280: Opening ipv6 listen socket on port 1883.
+1775662280: Opening websockets listen socket on port 9001.
+1775662280: mosquitto version 2.0.22 running
+1775662375: mosquitto version 2.0.22 starting
+1775662375: Config loaded from /mosquitto/config/mosquitto.conf.
+1775662375: Warning: File /mosquitto/config/passwd has world readable permissions. Future versions will refuse to load this file.
+To fix this, use `chmod 0700 /mosquitto/config/passwd`.
+1775662375: Error: Unable to decode password salt for user marais2026, removing entry.
+1775662375: Opening ipv4 listen socket on port 1883.
+1775662375: Opening ipv6 listen socket on port 1883.
+1775662375: Opening websockets listen socket on port 9001.
+1775662375: mosquitto version 2.0.22 running
+1775662415: mosquitto version 2.0.22 starting
+1775662415: Config loaded from /mosquitto/config/mosquitto.conf.
+1775662415: Warning: File /mosquitto/config/passwd has world readable permissions. Future versions will refuse to load this file.
+To fix this, use `chmod 0700 /mosquitto/config/passwd`.
+1775662415: Error: Unable to decode password salt for user marais2026, removing entry.
+1775662415: Opening ipv4 listen socket on port 1883.
+1775662415: Opening ipv6 listen socket on port 1883.
+1775662415: Opening websockets listen socket on port 9001.
+1775662415: mosquitto version 2.0.22 running
+1775662602: mosquitto version 2.0.22 terminating
+1775662602: Saving in-memory database to /mosquitto/data//mosquitto.db.
+1775662602: mosquitto version 2.0.22 terminating
+1775662602: Saving in-memory database to /mosquitto/data//mosquitto.db.
+1777371938: mosquitto version 2.0.22 starting
+1777371938: Config loaded from /mosquitto/config/mosquitto.conf.
+1777371938: Warning: File /mosquitto/config/passwd has world readable permissions. Future versions will refuse to load this file.
+To fix this, use `chmod 0700 /mosquitto/config/passwd`.
+1777371938: Opening ipv4 listen socket on port 1883.
+1777371938: Opening ipv4 listen socket on port 8883.
+1777371938: Error: Unable to load server key file "/mosquitto/config/server.key". Check keyfile.
+1777371938: OpenSSL Error[0]: error:05800074:x509 certificate routines::key values mismatch

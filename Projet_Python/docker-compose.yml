@@ -11,6 +11,7 @@ services:
       MARIADB_DATABASE: ${MYSQL_DATABASE}
       MARIADB_USER: ${MYSQL_USER}
       MARIADB_PASSWORD: ${MYSQL_PASSWORD}
+      TZ: Europe/Paris
     volumes:
       - vol_BDD:/var/lib/mysql
     networks:

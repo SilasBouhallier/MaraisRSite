@@ -1,64 +1,90 @@
+"""
+Module maraisRSenseData.py - Client MQTT pour la réception des données des sondes.
+"""
+import os
+import ssl
 import paho.mqtt.client as mqtt
 
 
 class MaraisRSenseData:
-    def __init__(self, configuration, controleur = None):
-        self.broker = configuration["broker"]
-        self.port = int(configuration["port"])
-        self.topics = configuration["topics_sonde"]
-        self.username = configuration.get("username")
-        self.password = configuration.get("password")
+    """
+    Client MQTT :
+    - se connecte au broker
+    - s'abonne aux topics des sondes
+    - transmet les messages au contrôleur
+    """
+
+    def __init__(self, configuration, controleur=None):
+        self.broker     = configuration["broker"]
+        self.port       = int(configuration["port"])
+        self.topics     = configuration["topics_sonde"]
+        self.username   = configuration.get("username")
+        self.password   = configuration.get("password")
         self.controleur = controleur
+
         self.client = mqtt.Client(mqtt.CallbackAPIVersion.VERSION1)
 
-        # Authentification si credentials présents
         if self.username and self.password:
             self.client.username_pw_set(self.username, self.password)
-        
-        # TLS si port 8883
+
         if self.port == 8883:
-            import os
-            base_dir = os.path.dirname(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
-            self.client.tls_set(
-                ca_certs=os.path.join(base_dir, "mosquitto/config/ca.crt"),
-                certfile=os.path.join(base_dir, "mosquitto/config/server.crt"),
-                keyfile=os.path.join(base_dir, "mosquitto/config/server.key")
-            )
+            self._configurer_tls()
+
         self.client.on_connect = self.on_connect
         self.client.on_message = self.on_message
 
+    def _configurer_tls(self):
+        """
+        Cherche le CA dans l'ordre :
+        1. /app/certs/ca.crt       (Docker)
+        2. ../certs/ca.crt         (local, relatif à utils/)
+        3. Variable d'env MQTT_CA_CERT
+        4. Fallback sans vérification
+        """
+        chemins_candidats = [
+            "/app/certs/ca.crt",
+            os.path.normpath(os.path.join(
+                os.path.dirname(os.path.abspath(__file__)), '..', 'certs', 'ca.crt'
+            )),
+            os.getenv("MQTT_CA_CERT", ""),
+        ]
+
+        ca_path = None
+        for chemin in chemins_candidats:
+            if chemin and os.path.exists(chemin):
+                ca_path = chemin
+                break
+
+        if ca_path:
+            self.client.tls_set(ca_certs=ca_path)
+            print(f"[TLS] OK - certificat : {ca_path}")
+        else:
+            print("[TLS] CA introuvable, connexion sans vérification")
+            self.client.tls_set(cert_reqs=ssl.CERT_NONE)
+            self.client.tls_insecure_set(True)
+
     def on_connect(self, client, userdata, flags, rc):
         if rc == 0:
-            print(f"Connecté au broker {self.broker}:{self.port}")
-            print(f"Abonné au topic : {self.topics}")
-            print(f"Code de retour : {rc}")
-
-        
+            print(f"[MQTT] Connecté à {self.broker}:{self.port}")
             client.subscribe(self.topics)
-            
+            print(f"[MQTT] Abonné au topic : {self.topics}")
         else:
-            print(f"Erreur connexion : {rc}")
-
+            print(f"[MQTT] Erreur connexion, code : {rc}")
 
     def on_message(self, client, userdata, msg):
-        message = msg.payload.decode()
-        print(f"[REÇU {msg.topic}] {message[:100]}...")
-        
-        # Envoie le message au contrôleur si disponible
+        message = msg.payload.decode(errors="ignore")
+        print(f"[MQTT] {msg.topic} -> {message[:100]}")
         if self.controleur:
             self.controleur.traiter(msg.topic, message)
         else:
-            print("[WARN] Pas de contrôleur défini")
+            print("[MQTT] Aucun contrôleur défini")
 
     def start(self):
-        print("Connexion au broker...")
-        print (self.broker)
-        self.client.connect(self.broker, self.port, 60)
+        print(f"[MQTT] Connexion à {self.broker}:{self.port} ...")
+        self.client.connect(self.broker, self.port, keepalive=60)
         self.client.loop_forever()
 
     def stop(self):
-        """Arrête proprement le client MQTT."""
+        print("[MQTT] Déconnexion ...")
         self.client.loop_stop()
         self.client.disconnect()
-
-
