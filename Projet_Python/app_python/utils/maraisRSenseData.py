@@ -1,3 +1,11 @@
+# maraisRSenseData.py
+# Auteur : [Sejourne Antoine]
+# BTS CIEL 2ème année - Projet Marais R Site
+# Client MQTT : reçoit les messages des sondes et les transmet au contrôleur pour traitement
+
+
+
+
 """
 Module maraisRSenseData.py - Client MQTT pour la réception des données des sondes.
 """

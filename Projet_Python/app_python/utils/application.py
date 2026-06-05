@@ -1,3 +1,9 @@
+# application.py
+# Auteur : [Sejourne Antoine]
+# BTS CIEL 2ème année - Projet Marais R Site
+# application principale : charge la config, initialise les modules et démarre tout
+
+
 from configparser import ConfigParser, NoSectionError
 import os
 import logging

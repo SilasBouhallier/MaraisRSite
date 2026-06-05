@@ -1,3 +1,10 @@
+# traitement_donnees.py
+# Auteur : [Sejourne Antoine]
+# BTS CIEL 2ème année - Projet Marais R Site
+# Traitement des données des sondes
+
+
+
 """
 Module traitement_donnees.py - Traitement et parsing des données des sondes.
 

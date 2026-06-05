@@ -1,3 +1,11 @@
+# sql.py
+# Auteur : [Sejourne Antoine]
+# BTS CIEL 2ème année - Projet Marais R Site
+# Gestionnaire de base de données MariaDB
+
+
+
+
 """
 Module sql.py - Gestionnaire de base de données MariaDB.
 

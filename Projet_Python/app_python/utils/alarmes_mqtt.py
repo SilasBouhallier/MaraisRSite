@@ -1,3 +1,10 @@
+# alarmes_mqtt.py
+# Auteur : [Sejourne Antoine]
+# BTS CIEL 2ème année - Projet Marais R Site
+# Contrôleur MQTT : reçoit les messages, extrait les données et les stocke en BDD
+
+
+
 """
 Module alarmes_mqtt.py - Service de déclenchement des alarmes via MQTT.
 

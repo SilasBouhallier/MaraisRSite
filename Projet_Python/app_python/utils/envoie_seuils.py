@@ -1,5 +1,5 @@
 # envoie_seuils.py
-# Auteur : [Ton nom]
+# Auteur : [Antoine Sejourne]
 # BTS CIEL 2ème année - Projet Marais R Site
 # Service FT6 : publie les seuils d'alerte vers les sondes via MQTT
 
