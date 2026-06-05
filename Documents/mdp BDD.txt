@@ -1,7 +1,0 @@
-mdp BDD 
-
-
-CREATE USER 'mqtt_user'@'%' IDENTIFIED BY 'mqtt_password_hyrome49#';
-
-
-CREATE USER 'web_user'@'%' IDENTIFIED BY 'web_password_hyrome49#';
