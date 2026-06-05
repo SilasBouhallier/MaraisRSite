@@ -1,0 +1,33 @@
+http:
+  routers:
+    traefik-dashboard:
+      rule: "Host(`marais2026.btssn.ovh`) && PathPrefix(`/traefik`)"
+      entryPoints:
+        - websecure
+      service: traefik-dashboard-service
+      middlewares:
+        - traefik-dashboard-rewrite
+      tls:
+        certResolver: letsencrypt
+      priority: 100
+
+    traefik-api:
+      rule: "Host(`marais2026.btssn.ovh`) && (PathPrefix(`/api/version`) || PathPrefix(`/api/overview`) || PathPrefix(`/api/entrypoints`) || PathPrefix(`/api/http`) || PathPrefix(`/api/tcp`) || PathPrefix(`/api/udp`))"
+      entryPoints:
+        - websecure
+      service: traefik-dashboard-service
+      tls:
+        certResolver: letsencrypt
+      priority: 200
+
+  middlewares:
+    traefik-dashboard-rewrite:
+      replacePathRegex:
+        regex: "^/traefik(/.*)?"
+        replacement: "/dashboard$1"
+
+  services:
+    traefik-dashboard-service:
+      loadBalancer:
+        servers:
+          - url: "http://traefik:8080"

@@ -1,0 +1,190 @@
+services:
+  traefik:
+    image: traefik:v3.0
+    container_name: traefik
+    restart: unless-stopped
+    ports:
+      - "443:443"
+      - "8883:8883"
+      - "127.0.0.1:8080:8080"
+    volumes:
+      - ./traefik/traefik.yml:/traefik.yml:ro
+      - ./traefik/dynamic:/etc/traefik/dynamic:ro
+      - letsencrypt:/letsencrypt
+    networks:
+      - marais_net
+    depends_on:
+      - web_app
+
+  mariadb:
+    container_name: mariadb
+    image: mariadb:10.11
+    restart: unless-stopped
+    command: ["mariadbd", "--event-scheduler=ON"]
+    environment:
+      TZ: Europe/Paris
+      MARIADB_ROOT_PASSWORD: ${MYSQL_ROOT_PASSWORD}
+      MARIADB_DATABASE: ${MYSQL_DATABASE}
+      MARIADB_USER: ${MYSQL_USER}
+      MARIADB_PASSWORD: ${MYSQL_PASSWORD}
+      MARIADB_WEB_USER: ${MYSQL_WEB_USER}
+      MARIADB_WEB_PASSWORD: ${MYSQL_WEB_PASSWORD}
+      MARIADB_MQTT_USER: ${MYSQL_MQTT_USER}
+      MARIADB_MQTT_PASSWORD: ${MYSQL_MQTT_PASSWORD}
+    volumes:
+      - vol_BDD:/var/lib/mysql
+      - /etc/localtime:/etc/localtime:ro
+    networks:
+      - marais_net
+
+  phpmyadmin:
+    container_name: phpmyadmin
+    image: phpmyadmin/phpmyadmin
+    restart: unless-stopped
+    expose:
+      - "80"
+    environment:
+      TZ: Europe/Paris
+      PMA_HOST: mariadb
+      PMA_ARBITRARY: 1
+      PMA_ABSOLUTE_URI: /phpmyadmin/
+    depends_on:
+      - mariadb
+    volumes:
+      - /etc/localtime:/etc/localtime:ro
+    networks:
+      - marais_net
+
+  grafana:
+    container_name: grafana
+    image: grafana/grafana
+    restart: unless-stopped
+    expose:
+      - "3000"
+    environment:
+      - TZ=Europe/Paris
+      - GF_SERVER_ROOT_URL=https://marais2026.btssn.ovh/grafana/
+      - GF_SECURITY_ALLOW_EMBEDDING=true
+      - GF_SERVER_SERVE_FROM_SUB_PATH=true
+      -  GF_AUTH_ANONYMOUS_ENABLED=true
+      -  GF_AUTH_ANONYMOUS_ORG_ROLE=Viewer
+    volumes:
+      - vol_grafana:/var/lib/grafana
+    networks:
+      - marais_net
+
+  mosquitto:
+    container_name: mosquitto
+    image: eclipse-mosquitto:2.0
+    restart: unless-stopped
+    expose:
+      - "1883"
+      - "8883"
+    volumes:
+      - ./mosquitto/config:/mosquitto/config
+    networks:
+      - marais_net
+
+  web_app:
+    container_name: web_app
+    build:
+      context: ./web_app
+      dockerfile: Dockerfile
+    restart: unless-stopped
+    expose:
+      - "5000"  # Expose interne uniquement (pas de ports publique)
+    environment:
+      PYTHONUNBUFFERED: "1"
+      MYSQL_DATABASE: ${MYSQL_WEB_DATABASE}
+      MYSQL_USER: ${MYSQL_WEB_USER}
+      MYSQL_PASSWORD: ${MYSQL_WEB_PASSWORD}
+      MYSQL_HOST: ${MYSQL_WEB_HOST}
+      TOKEN_USER_GRAFANA: ${TOKEN_USER_GRAFANA}
+      MQTT_USER: ${MQTT_USER}
+      MQTT_PASSWORD: ${MQTT_PASSWORD}
+    depends_on:
+      - mariadb
+    networks:
+      - marais_net
+
+  app_python:
+    container_name: app_python
+    build:
+      context: ./app_python
+      dockerfile: Dockerfile
+    restart: unless-stopped
+    environment:
+      PYTHONUNBUFFERED: "1"
+      MQTT_BROKER: ${MQTT_BROKER}
+      MQTT_USER: ${MQTT_USER}
+      MQTT_PASSWORD: ${MQTT_PASSWORD}
+      MYSQL_MQTT_HOST: ${MYSQL_MQTT_HOST}
+      MYSQL_MQTT_USER: ${MYSQL_MQTT_USER}
+      MYSQL_MQTT_PASSWORD: ${MYSQL_MQTT_PASSWORD}
+      MYSQL_MQTT_DATABASE: ${MYSQL_MQTT_DATABASE}
+    depends_on:
+      - mariadb
+      - mosquitto
+    volumes:
+      - ./mosquitto/config/ca.crt:/app/certs/ca.crt:ro
+    networks:
+      - marais_net
+
+  beszel:
+    image: 'henrygd/beszel:latest'
+    container_name: beszel
+    restart: unless-stopped
+    expose:
+      - '8090'
+    environment:
+      - APP_URL=https://marais2026.btssn.ovh/beszel
+    volumes:
+      - vol_beszel:/data
+      - /var/run/docker.sock:/var/run/docker.sock:ro
+    command: serve --http=0.0.0.0:8090 --dir=/data
+    networks:
+      - marais_net
+
+  beszel-agent:
+    image: 'henrygd/beszel-agent:latest'
+    container_name: beszel-agent
+    restart: unless-stopped
+    ports:
+      - '4567:4567'
+    volumes:
+      - /var/run/docker.sock:/var/run/docker.sock:ro
+    environment:
+      PORT: 4567
+      KEY: "${BESZEL_KEY}"
+    networks:
+      - marais_net
+
+  test_runner:
+    image: alpine
+    depends_on:
+      - mariadb
+      - mosquitto
+      - phpmyadmin
+      - grafana
+      - web_app
+      - beszel
+    volumes:
+      - ./tests:/tests
+      - /var/run/docker.sock:/var/run/docker.sock
+    command: >
+      sh -c "
+      apk add --no-cache curl netcat-openbsd iputils docker &&
+      sh /tests/basic_connectivity_tests.sh
+      "
+    networks:
+      - marais_net
+
+volumes:
+  vol_BDD:
+  vol_grafana:
+  vol_beszel:
+  letsencrypt:
+
+networks:
+  marais_net:
+    driver: bridge

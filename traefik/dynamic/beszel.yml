@@ -1,0 +1,44 @@
+http:
+  routers:
+    beszel-main:
+      rule: "Host(`marais2026.btssn.ovh`) && PathPrefix(`/beszel`)"
+      entryPoints:
+        - websecure
+      service: beszel-service
+      middlewares:
+        - beszel-stripprefix
+      tls:
+        certResolver: letsencrypt
+      priority: 100
+
+    beszel-assets:
+      rule: "Host(`marais2026.btssn.ovh`) && (PathPrefix(`/beszel/static`) || PathPrefix(`/beszel/assets`))"
+      entryPoints:
+        - websecure
+      service: beszel-service
+      middlewares:
+        - beszel-stripprefix
+      tls:
+        certResolver: letsencrypt
+      priority: 300
+
+    beszel-api:
+      rule: "Host(`marais2026.btssn.ovh`) && PathPrefix(`/api/realtime`)"
+      entryPoints:
+        - websecure
+      service: beszel-service
+      tls:
+        certResolver: letsencrypt
+      priority: 300
+
+  middlewares:
+    beszel-stripprefix:
+      stripPrefix:
+        prefixes:
+          - "/beszel"
+
+  services:
+    beszel-service:
+      loadBalancer:
+        servers:
+          - url: "http://beszel:8090"
