@@ -96,3 +96,125 @@ class MaraisRSenseData:
         print("[MQTT] Déconnexion ...")
         self.client.loop_stop()
         self.client.disconnect()
+
+
+if __name__ == "__main__":
+    """
+    Test direct du module : python utils/maraisRSenseData.py
+    
+    Ce bloc permet de tester la connexion au broker MQTT et la réception
+    des messages des sondes sans lancer l'application complète.
+    """
+    import time
+    import re
+    from dotenv import load_dotenv
+    from configparser import ConfigParser
+    
+    # Détermination du chemin de base
+    base_dir = os.path.dirname(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
+    
+    # Chargement des variables d'environnement
+    load_dotenv(os.path.join(base_dir, '.env'))
+    
+    def subst(v):
+        """Fonction de substitution des variables ${VAR} par leurs valeurs."""
+        if not v:
+            return v
+        return re.sub(r'\$\{([^}]+)\}', lambda m: os.getenv(m.group(1), ''), v).strip()
+    
+    # Chargement du fichier de configuration
+    parser = ConfigParser()
+    parser.read(os.path.join(base_dir, 'app_python', 'utils', 'configuration.cfg'))
+    
+    # Extraction des configurations avec substitution
+    config_mqtt = {k: subst(v) for k, v in parser['MQTT'].items()}
+    
+    try:
+        # [1] Affichage des paramètres de connexion
+        print("[1] Paramètres de connexion :")
+        print(f"    - Broker : {config_mqtt.get('broker')}")
+        print(f"    - Port : {config_mqtt.get('port')}")
+        print(f"    - Topics : {config_mqtt.get('topics_sonde')}")
+        print()
+        
+        # [2] Initialisation du client MQTT (sans contrôleur)
+        print("[2] Initialisation du client MQTT...")
+        client = MaraisRSenseData(config_mqtt, controleur=None)
+        print("    ✓ Client créé avec succès")
+        print()
+        
+        # [3] Information sur la configuration TLS
+        print("[3] Configuration TLS :")
+        if int(config_mqtt.get('port')) == 8883:
+            print("    - Mode TLS/SSL activé (port 8883)")
+        else:
+            print("    - Mode TLS/SSL désactivé")
+        print()
+        
+        # [4] Tentative de connexion (30 secondes max)
+        print("[4] Connexion au broker...")
+        print("    (Ctrl+C pour arrêter)")
+        print()
+        
+        # Start dans un thread pour pouvoir contrôler le timeout
+        import threading
+        thread = threading.Thread(target=client.start, daemon=True)
+        thread.start()
+        
+        # Attente de 30 secondes ou jusqu'à Ctrl+C
+        try:
+            for i in range(30):
+                time.sleep(1)
+                if i % 5 == 0 and i > 0:
+                    print(f"    ⏱ Écoute en cours... ({i}s)")
+        except KeyboardInterrupt:
+            print("\n    ⚠ Arrêt demandé par l'utilisateur")
+        
+        # [5] Arrêt du client
+        print()
+        print("[5] Arrêt du client...")
+        client.stop()
+        time.sleep(1)
+        print("    ✓ Client arrêté proprement")
+        print()
+        
+        print("✓ Test terminé avec succès !")
+        
+    except Exception as e:
+        print(f"✗ Erreur lors du test : {e}")
+        import traceback
+        traceback.print_exc()
+
+
+# ============================================================
+# Diagramme de classe UML - MaraisRSenseData
+# ============================================================
+#
+# Pour générer le diagramme visuel, utilisez un outil PlantUML
+#
+#   +------------------------------------------------+
+#   |         MaraisRSenseData                       |
+#   +------------------------------------------------+
+#   | - broker: str                                  |
+#   | - port: int                                    |
+#   | - topics: str                                  |
+#   | - username: str                                |
+#   | - password: str                                |
+#   | - controleur: ControleurMQTT                   |
+#   | - client: mqtt.Client                          |
+#   +------------------------------------------------+
+#   | + __init__(configuration: dict, controleur)   |
+#   | + start(): void                                |
+#   | + stop(): void                                 |
+#   | + on_connect(client, userdata, flags, rc)     |
+#   | + on_message(client, userdata, msg)           |
+#   | - _configurer_tls(): void                      |
+#   +------------------------------------------------+
+#   |            Dépendances                         |
+#   +------------------------------------------------+
+#   |   MaraisRSenseData  ------>  mqtt.Client      |
+#   |   MaraisRSenseData  ------>  ControleurMQTT   |
+#   |   MaraisRSenseData  ------>  ssl              |
+#   +------------------------------------------------+
+#
+# ============================================================
